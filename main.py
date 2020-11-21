@@ -41,7 +41,6 @@ p_frame = np.vstack((p0[1:3], p0[0], p0[3:]))
 frame = ax.plot(p_frame[:, 0], p_frame[:, 1], p_frame[:, 2], 'k-')
 
 anim = motor_locations + frame
-print(anim)
 
 ani = animation.FuncAnimation(fig, update, interval = dt**1000, blit=False)
 plt.show()

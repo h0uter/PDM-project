@@ -16,7 +16,7 @@ C       D
 
 class Drone:
 
-    def __init__(self, s0, s_dot0, dt, l=[0.2, 0.2, 0.2, 0.2], m=1.8, Is=[0.8, 0.8, 0.8]):
+    def __init__(self, s0, s_dot0, dt, l=[0.2, 0.2, 0.2, 0.2], m=2, Is=[0.8, 0.8, 0.8]):
         self.s = np.asarray(s0) #[0, 0, 0, 0, 0, 0] x, y, z, pitch, roll, yaw
         self.s_dot = np.asarray(s_dot0) #ds/dt
         self.s_ddot = np.asarray([0, 0, 0, 0, 0, 0])
@@ -28,7 +28,7 @@ class Drone:
         dr = [1, 1, -1, -1]
 
         self.motor_pos = np.asarray([[0, l[0], 0], [0, -l[2], 0], [l[1], 0, 0], [-l[3], 0, 0]]) # motor positions are [A, D, B, C]
-        self.motors = [Motor(0.2, 150, 10, 0.2, dr[i], dt) for i in range(4)]
+        self.motors = [Motor(0.1, 500, 15, 0.02, dr[i], dt) for i in range(4)]
 
         self.motor_commands = np.asarray([0, 0, 0, 0])
         
@@ -55,6 +55,7 @@ class Drone:
         self.s_dot = np.add(self.s_dot, a * self.dt)
         self.s = np.add(self.s, self.s_dot * self.dt)
 
+        """
         if(self.s[2] <=0):
             self.s_dot = np.asarray([self.s_dot[0], self.s_dot[1], -self.s_dot[2], self.s_dot[3], self.s_dot[4], self.s_dot[5]])
         
@@ -64,6 +65,7 @@ class Drone:
         if(self.s[0] <=0.0 or self.s[0] >=10.0):
             self.s_dot = np.asarray([-self.s_dot[0], self.s_dot[1], self.s_dot[2], self.s_dot[3], self.s_dot[4], self.s_dot[5]])
 
+        """
     def get_transformation_matrix(self, pitch, roll, yaw):
         q1 = Quaternion(axis=[1., 0., 0.], angle=pitch)
         q2 = Quaternion(axis=[0., 1., 0.], angle=roll)

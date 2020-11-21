@@ -133,6 +133,6 @@ class Motor:
     def get_thrust_values(self):
         self.update()
         #thrust is modelled as linear relationship with RPM
-        F = np.asarray([0, 0, self.k * self.omega])
+        F = np.asarray([0, 0, self.k * self.omega * self.direction])
         T = np.asarray([0, 0, self.t])
         return F, T

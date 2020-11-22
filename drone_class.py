@@ -1,7 +1,6 @@
 import numpy as np
 from pyquaternion import Quaternion
 
-
 """
 Drone overview
 
@@ -48,7 +47,7 @@ class Drone:
             T_tot = np.add(T_tot, T_global)
 
         ang_acc = np.dot(np.linalg.inv(self.I), T_tot)
-        acc = np.add(F_global / self.m, np.asarray([0, 0, -9.81])) 
+        acc = np.add(F_tot / self.m, np.asarray([0, 0, -9.81])) 
 
         #for now no controllers or motors
         a = np.append(acc, ang_acc)
@@ -140,7 +139,7 @@ class Motor:
         
     def get_thrust_values(self):
         self.update()
-        #thrust is modelled as quadratic relationship with RPM
+        #thrust is modelled as quadratic relationship with RPM, ignoring angle of attack
         F = np.asarray([0, 0, self.k * self.omega * np.abs(self.omega) * self.direction])
         T = np.asarray([0, 0, self.t])
         return F, T

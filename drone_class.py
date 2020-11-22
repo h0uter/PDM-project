@@ -64,8 +64,8 @@ class Drone:
         
         if(self.s[0] <=0.0 or self.s[0] >=10.0):
             self.s_dot = np.asarray([-self.s_dot[0], self.s_dot[1], self.s_dot[2], self.s_dot[3], self.s_dot[4], self.s_dot[5]])
-
         """
+
     def get_transformation_matrix(self, pitch, roll, yaw):
         q1 = Quaternion(axis=[1., 0., 0.], angle=pitch)
         q2 = Quaternion(axis=[0., 1., 0.], angle=roll)
@@ -105,32 +105,38 @@ class Motor:
         self.k = thurst_coefficient
         self.max_rot_vel = max_omega
         self.inertia = inertia
+        self.max_torque = max_torque
         self.direction = direction
         self.dt = dt
-
-        self.max_angular_acceleration = max_torque / inertia
 
         self.omega = 0
         self.omega_ref = 0
         self.t = 0
     
     def set_omega_command(self, omega_ref):
-        if abs(self.omega_ref) > self.max_rot_vel:
-            self.omega_ref = self.max_rot_vel * np.sign(omega_ref) * self.direction
+        if abs(self.omega_ref) > self.max_rot_vel * 0.9:
+            self.omega_ref = self.max_rot_vel * 0.9 * np.sign(omega_ref) * self.direction
         else:
             self.omega_ref = omega_ref * self.direction
+
+    def calc_max_angular_acceleration(self):
+        gradient = -self.max_torque / self.max_rot_vel
+        max_torque = abs(self.omega) * gradient + self.max_torque
+        return max_torque / self.inertia
         
     def update(self):
-        #model is assuming no required torque for constant velocity, model is also assuming max torque is constant over entire operating range of motor
+        #model is assuming no required torque for constant velocity
         vel_error = self.omega_ref - self.omega
         ang_acc_req = vel_error / self.dt
 
-        if (np.abs(ang_acc_req) <= self.max_angular_acceleration):
+        max_angular_acceleration = self.calc_max_angular_acceleration()
+
+        if (np.abs(ang_acc_req) <= max_angular_acceleration):
             self.omega = self.omega_ref
             self.t = -ang_acc_req * self.inertia
         else:
-            self.omega += self.max_angular_acceleration * np.sign(vel_error) * self.dt
-            self.t = self.max_angular_acceleration * -np.sign(vel_error) * self.inertia
+            self.omega += max_angular_acceleration * np.sign(vel_error) * self.dt
+            self.t = max_angular_acceleration * -np.sign(vel_error) * self.inertia
         
     def get_thrust_values(self):
         self.update()

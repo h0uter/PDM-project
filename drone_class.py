@@ -28,7 +28,7 @@ class Drone:
         dr = [1, 1, -1, -1]
 
         self.motor_pos = np.asarray([[0, l[0], 0], [0, -l[2], 0], [l[1], 0, 0], [-l[3], 0, 0]]) # motor positions are [A, D, B, C]
-        self.motors = [Motor(0.1, 500, 15, 0.02, dr[i], dt) for i in range(4)]
+        self.motors = [Motor(0.0005, 500, 15, 0.02, dr[i], dt) for i in range(4)]
 
         self.motor_commands = np.asarray([0, 0, 0, 0])
         
@@ -140,7 +140,7 @@ class Motor:
         
     def get_thrust_values(self):
         self.update()
-        #thrust is modelled as linear relationship with RPM
-        F = np.asarray([0, 0, self.k * self.omega * self.direction])
+        #thrust is modelled as quadratic relationship with RPM
+        F = np.asarray([0, 0, self.k * self.omega * np.abs(self.omega) * self.direction])
         T = np.asarray([0, 0, self.t])
         return F, T

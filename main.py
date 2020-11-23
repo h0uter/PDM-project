@@ -25,12 +25,16 @@ def update(frame):
 fig = plt.figure()
 ax = fig.add_subplot(projection="3d")
 
-ax.set_zlim3d([0.0, 10.0])
-ax.set_xlim3d([0.0, 10.0])
-ax.set_ylim3d([0.0, 10.0])
+ax.set_zlim3d([0.0, 20.0])
+ax.set_xlim3d([0.0, 20.0])
+ax.set_ylim3d([0.0, 20.0])
+ax.set_xlabel('$X$', fontsize=20)
+ax.set_ylabel('$Y$', fontsize=20)
+ax.set_zlabel('$Z$', fontsize=20)
 
 x0,y0,z0 = 5,5,5
-drone = Drone([x0, y0, z0, 0, 0, 0], [0, 0, 0, 0, 0, 0], dt, l=[0.2,0.2,0.2,0.2])
+# drone = Drone([x0, y0, z0, 0, 0, 0], [0, 0, 0, 0, 0, 0], dt, l=[0.2,0.2,0.2,0.2])
+drone = Drone([x0, y0, z0, 0, 0, 0], [0, 0, 0, 0, 0, 0], dt, l=[1,1,1,1])
 controller = Controller(drone)
 p0 = drone.get_drone()
 

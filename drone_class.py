@@ -16,6 +16,7 @@ C       D
 class Drone:
 
     def __init__(self, s0, s_dot0, dt, l=[0.2, 0.2, 0.2, 0.2], m=2, Is=[0.8, 0.8, 0.8]):
+
         self.s = np.asarray(s0) #[0, 0, 0, 0, 0, 0] x, y, z, pitch, roll, yaw
         self.s_dot = np.asarray(s_dot0) #ds/dt
         self.s_ddot = np.asarray([0, 0, 0, 0, 0, 0])

@@ -4,12 +4,14 @@ import matplotlib.animation as animation
 
 from drone_class import Drone
 from controller import Controller
+from collision_detector import DroneHitbox
 
 dt = 0.01
 
 def update(frame):
     controller.update()
     drone.update()
+    dronehitbox.update(drone.s)
     p = drone.get_drone()
 
     # NOTE: there is no .set_data() for 3 dim data...
@@ -32,6 +34,7 @@ ax.set_ylim3d([0.0, 10.0])
 x0,y0,z0 = 5,5,5
 drone = Drone([x0, y0, z0, 0, 0, 0], [0, 0, 0, 0, 0, 0], dt, l=[0.2,0.2,0.2,0.2])
 controller = Controller(drone)
+dronehitbox = DroneHitbox(drone.s[:3])
 p0 = drone.get_drone()
 
 #points on drone

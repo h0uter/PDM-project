@@ -5,13 +5,29 @@ import matplotlib.animation as animation
 from drone_class import Drone
 from controller import Controller
 
+import os
+
 dt = 0.01
+controller_data, motor_data = np.zeros(4), np.zeros(4)
 
 def update(frame):
+    global controller_data, motor_data
+
     controller.update()
-    #drone.set_motor_commands([120, 250, 120, 250])
     drone.update()
     p = drone.get_drone()
+    thrust_vectors = drone.get_thrust_vectors()
+    command_vector = controller.get_command_vector()
+    speed_vector = drone.get_motor_speeds()
+
+    os.system('cls' if os.name == 'nt' else 'clear')
+    motors = ['A', 'C', 'B', 'D']
+    for motor_id, command, speed in zip(motors, command_vector, speed_vector):
+        print("motor {} command velocity: {}".format(motor_id, ''.join(['#']*((int) (command / 10))) ))
+        print("motor {} current velocity: {}".format(motor_id, ''.join(['+']*((int) (abs(speed) / 10))) ))
+    
+    controller_data = np.vstack((controller_data, command_vector))
+    motor_data = np.vstack((motor_data, speed_vector))
 
     # NOTE: there is no .set_data() for 3 dim data...
     anim[0].set_data(p[:,0], p[:,1])
@@ -21,7 +37,6 @@ def update(frame):
     anim[1].set_data(p_frame[:,0], p_frame[:,1])
     anim[1].set_3d_properties(p_frame[:,2])
 
-    thrust_vectors = drone.get_thrust_vectors()
     for an, start, end in zip(anim[2:], p[1:], thrust_vectors):
         if (np.linalg.norm(end > 1e-5)):
             an.set_data([start[0], end[0]], [start[1], end[1]])
@@ -58,4 +73,21 @@ thrust4 = ax.plot([0,0], [0,0], [0,0], 'b-')
 anim = motor_locations + frame + thrust1 + thrust2 + thrust3 + thrust4
 
 ani = animation.FuncAnimation(fig, update, interval = dt**1000, blit=False)
+
+plt.show()
+controller_data = np.asarray(controller_data)
+motor_data = np.asarray(motor_data)
+
+fig, axs = plt.subplots(4, 1)
+
+for i, motor_id in enumerate(['A', 'C', 'B', 'D']):
+    axs[i].set_title("motor {}".format(motor_id))
+    y = controller_data[:, i]
+    axs[i].plot(np.arange(len(y))*dt, y, 'b-', label='motor commands')
+    y = np.abs(motor_data[:, i])
+    axs[i].plot(np.arange(len(y))*dt, y, 'r-', label='motor speeds')
+    axs[i].set_xlabel('time (s)')
+    axs[i].set_ylabel('speed')
+
+plt.legend()
 plt.show()

@@ -1,11 +1,13 @@
 import numpy as np
 from numpy.core.arrayprint import dtype_is_implied
 from numpy.core.numeric import roll
+import random
 
 class Controller:
     def __init__(self, drone):
         self.drone = drone
-        self.target = np.array([5, 10, 5]) # x, y, z
+        self.command_vector = [200, 250, 120, 250]
+        self.target = np.array([3, 3, 3]) # x, y, z
 
         self.Kp_z = 30
         self.Kd_z = 14
@@ -22,6 +24,9 @@ class Controller:
         self.time = 0
 
     def update(self):
+        # self.command_vector = [random.randint(100, 500), random.randint(100, 500), random.randint(100, 500), random.randint(100, 500)]
+        # self.drone.set_motor_commands(self.command_vector)
+    
         state = self.drone.eye_of_god()
         # print("state", state)
 
@@ -59,7 +64,7 @@ class Controller:
 
         # rotate for me baby
         # yaw_reference = np.pi
-        yaw_reference = np.pi/2
+        yaw_reference = 0
 
 
 
@@ -143,10 +148,12 @@ class Controller:
         # omega = np.sqrt(forces/self.drone.motors[0].k)
 
 
-        omega = np.sqrt(motor_forces/self.drone.motors[0].k)
+        # omega = np.sqrt(motor_forces/self.drone.motors[0].k)
+        self.command_vector = np.sqrt(motor_forces/self.drone.motors[0].k)
 
-        print('Setpoint: ', omega)
-        self.drone.set_motor_commands(omega)
+        # print('Setpoint: ', omega)
+        # self.drone.set_motor_commands(omega)
+        self.drone.set_motor_commands(self.command_vector)
 
         self.prev_local_pos_error = local_pos_error
         # self.prev_angle_error = angle_error
@@ -163,3 +170,6 @@ class Controller:
 
     def set_target(self, pos):
         self.target = pos
+
+    def get_command_vector(self):
+        return self.command_vector

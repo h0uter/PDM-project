@@ -28,22 +28,27 @@ class Drone:
         dr = [1, 1, -1, -1]
 
         self.motor_pos = np.asarray([[0, l[0], 0], [0, -l[2], 0], [l[1], 0, 0], [-l[3], 0, 0]]) # motor positions are [A, D, B, C]
-        self.motors = [Motor(0.0005, 500, 15, 0.02, dr[i], dt) for i in range(4)]
+        self.motors = [Motor(0.0002, 500, 25, 0.02, dr[i], dt) for i in range(4)]
 
         self.motor_commands = np.asarray([0, 0, 0, 0])
+        self.motor_speeds = np.asarray([0, 0, 0, 0])
+        self.motor_thrust_matrix = np.zeros((4, 3))
         
     def update(self):
         T_M = self.get_transformation_matrix(*self.s[3:])[:3, :3]
         
         F_tot, T_tot = np.zeros(3), np.zeros(3)
         #calculate motor forces
-        for motor, arm, command in zip(self.motors, self.motor_pos, self.motor_commands):
+        for i, (motor, arm, command) in enumerate(zip(self.motors, self.motor_pos, self.motor_commands)):
             motor.set_omega_command(command)
             F, T = motor.get_thrust_values()
 
             F_global = np.dot(T_M, F)
             T_global = np.add(np.dot(T_M, T), np.cross(np.dot(T_M, arm), np.dot(T_M, F)))
 
+            self.motor_thrust_matrix[i] = F_global / 10 + self.s[:3] + np.dot(T_M, arm)
+            self.motor_speeds[i] = motor.get_motor_speed()
+ 
             F_tot = np.add(F_tot, F_global)
             T_tot = np.add(T_tot, T_global)
 
@@ -54,7 +59,7 @@ class Drone:
         a = np.append(acc, ang_acc)
         self.s_dot = np.add(self.s_dot, a * self.dt)
         self.s = np.add(self.s, self.s_dot * self.dt)
-        self.s[5] = np.pi/2
+        self.s[5] = 0
 
         """
         if(self.s[2] <=0):
@@ -86,6 +91,9 @@ class Drone:
         
         return drone
     
+    def get_thrust_vectors(self):
+        return self.motor_thrust_matrix
+    
     def IMU(self):
         return np.append(self.s_dot, self.s_ddot) #vx, vy, vz, vpitch, vroll, vyaw, dvx, dvy, dvz, dvpitch, dvroll, dvyaw
     
@@ -97,9 +105,12 @@ class Drone:
     
     def eye_of_god(self):
         return np.append(self.s, self.s_dot) #x, y, z, roll, pitch, yaw, vx, vy, vz, vpitch, vroll, vyaw 
-    
+
     def set_motor_commands(self, motor_commands): 
         self.motor_commands = np.asarray(motor_commands) #takes 4D array, using order [A, D, B, C]
+    
+    def get_motor_speeds(self):
+        return self.motor_speeds
 
 class Motor:
     def __init__(self, thurst_coefficient, max_omega, max_torque, inertia, direction, dt):
@@ -145,3 +156,6 @@ class Motor:
         F = np.asarray([0, 0, self.k * self.omega * np.abs(self.omega) * self.direction])
         T = np.asarray([0, 0, self.t])
         return F, T
+    
+    def get_motor_speed(self):
+        return self.omega

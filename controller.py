@@ -5,16 +5,16 @@ from numpy.core.numeric import roll
 class Controller:
     def __init__(self, drone):
         self.drone = drone
-        self.target = np.array([5, 5, 5]) # x, y, z
+        self.target = np.array([5, 10, 5]) # x, y, z
 
         self.Kp_z = 30
         self.Kd_z = 14
 
         self.Kp = 1
-        self.Kd = 0
+        self.Kd = 0.5
 
         self.Kp_a = 10
-        self.Kd_a = 3
+        self.Kd_a = 5
 
         self.prev_local_pos_error = np.array([0, 0, 0])
         self.prev_orientation_error = np.array([0, 0, 0])
@@ -36,9 +36,17 @@ class Controller:
         rot_inv = np.linalg.inv(self.drone.get_transformation_matrix(state[3], state[4], state[5]))[:3, :3]
         #print(rot_inv)
 
+        yaw = state[5]
+        # rotation matrix yaw only
+        rot = np.linalg.inv(np.array([[np.cos(yaw), -np.sin(yaw), 0],
+                        [np.sin(yaw), np.cos(yaw), 0], [0, 0, 1]]))
+        
+        #rot
+
         # world to body conversion of error
         global_pos_error = self.target - state[0:3]
-        local_pos_error = rot_inv@global_pos_error
+        # local_pos_error = rot_inv@global_pos_error
+        local_pos_error = rot@global_pos_error
         print("global_pos_error:", global_pos_error, " local pos error: ", local_pos_error)
 
         d_local_pos_error = (local_pos_error - self.prev_local_pos_error)/self.dt
@@ -46,11 +54,13 @@ class Controller:
         angle_reference = self.Kp * \
             local_pos_error[0:2] + self.Kd*d_local_pos_error[0:2]
 
-        roll_reference = angle_reference[0]
-        pitch_reference = angle_reference[1]
+        roll_reference = -angle_reference[1]
+        pitch_reference = angle_reference[0]
 
         # rotate for me baby
-        yaw_reference = np.pi
+        # yaw_reference = np.pi
+        yaw_reference = np.pi/2
+
 
 
         """YAW + INNER LOOP PITCH & ROLL ORIENTATION CONTROLLER"""
@@ -59,17 +69,17 @@ class Controller:
 
         # limit target orientation to 45deg
         roll_reference = np.maximum(
-            np.minimum(roll_reference, np.pi/4),  -np.pi/4)
+            np.minimum(roll_reference, np.pi/8),  -np.pi/8)
         pitch_reference = np.maximum(
-            np.minimum(pitch_reference, np.pi/4),  -np.pi/4)
+            np.minimum(pitch_reference, np.pi/8),  -np.pi/8)
 
         target_orientation = np.array(
             [roll_reference, pitch_reference, yaw_reference])
 
 
-        orientation_error = target_orientation - state[3:6]
+        orientation_error = target_orientation - rot@state[3:6]
 
-        print('[Roll, Pitch, Yaw] state: ', state[3:6])
+        print('[Roll, Pitch, Yaw] state: ', rot@state[3:6])
         print('[Roll, Pitch, Yaw] target: ', target_orientation)
         print("[Roll, Pitch, Yaw] error:", orientation_error)
 
@@ -78,9 +88,8 @@ class Controller:
                                self.prev_orientation_error)/self.dt
         d_orientation = self.Kp_a*orientation_error + self.Kd_a*d_orientation_error
 
-
-        pitch_cmd = d_orientation[0]
-        roll_cmd = d_orientation[1]
+        roll_cmd = -d_orientation[0]  # + moves in +y
+        pitch_cmd = d_orientation[1] # + moves in +x
         yaw_cmd = d_orientation[2]
 
         """THRUST CONTROLLER"""
@@ -98,7 +107,7 @@ class Controller:
 
         # thrust_cmd = self.drone.m * g + self.Kp_z*local_pos_error[2] + self.Kd_z*d_local_pos_error[2]
 
-
+        print('Thrust, roll, pitch, yaw command:', thrust_cmd, roll_cmd, pitch_cmd, yaw_cmd)
 
         """MOTOR MIXING ALGORITHM"""
 

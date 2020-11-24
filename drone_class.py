@@ -54,6 +54,7 @@ class Drone:
         a = np.append(acc, ang_acc)
         self.s_dot = np.add(self.s_dot, a * self.dt)
         self.s = np.add(self.s, self.s_dot * self.dt)
+        self.s[5] = np.pi/2
 
         """
         if(self.s[2] <=0):

@@ -4,7 +4,8 @@ import matplotlib.animation as animation
 
 from drone_class import Drone
 from controller import Controller
-from collision_detector import DroneHitbox
+from collision_detector import DroneHitbox, CollisionDetector
+from obstacles import SphereManager
 
 import os
 
@@ -16,11 +17,12 @@ def update(frame):
 
     controller.update()
     drone.update()
-    dronehitbox.update(drone.s)
+    drone_hitbox.update(drone.s)
     p = drone.get_drone()
     thrust_vectors = drone.get_thrust_vectors()
     command_vector = controller.get_command_vector()
     speed_vector = drone.get_motor_speeds()
+
 
     os.system('cls' if os.name == 'nt' else 'clear')
     motors = ['A', 'C', 'B', 'D']
@@ -59,7 +61,8 @@ ax.set_ylim3d([0.0, 5.0])
 x0,y0,z0 = 2.5,2.5,2.5
 drone = Drone([x0, y0, z0, 0, 0, 0], [0, 0, 0, 0, 0, 0], dt, l=[0.2,0.2,0.2,0.2])
 controller = Controller(drone)
-dronehitbox = DroneHitbox(drone.s[:3])
+drone_hitbox = DroneHitbox(drone.s[:3])
+sphere_manager = SphereManager(1, [[2.5, 2.5, 2.5]], [1])
 p0 = drone.get_drone()
 
 #points on drone
@@ -72,6 +75,17 @@ thrust1 = ax.plot([0,0], [0,0], [0,0], 'b-')
 thrust2 = ax.plot([0,0], [0,0], [0,0], 'b-')
 thrust3 = ax.plot([0,0], [0,0], [0,0], 'b-')
 thrust4 = ax.plot([0,0], [0,0], [0,0], 'b-')
+
+#create sphere objects
+sphere_array = sphere_manager.create_spheres()
+
+#initialise collision detector
+collision_detector = CollisionDetector()
+
+#plot spheres
+for sphere in sphere_array:
+    x, y, z = sphere.create_sphere()
+    ax.plot_wireframe(x, y, z, color="r")
 
 anim = motor_locations + frame + thrust1 + thrust2 + thrust3 + thrust4
 

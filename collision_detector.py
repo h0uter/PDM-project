@@ -7,24 +7,22 @@ class DroneHitbox:
         self.r = r # radius of drone hitbox
 
     def update(self, s):
-        self.s = s
+        self.s = s[:3]
 
 class CollisionDetector:
 
-    def __init__(self, DroneHitbox, sphere_array):
-        self.s = DroneHitbox.s
-        self.r = DroneHitbox.r
-        self.spheres = sphere_array
+    def __init__(self):
+        pass
 
-    def check_collision(self):
-        return sphere_collision_detector(self.spheres)
+    def check_collision(self, dronehitbox, spheres):
+        return self.sphere_collision_detector(dronehitbox, spheres)
 
-    def sphere_collision_detector(self, spheres):
+    def sphere_collision_detector(self, dronehitbox, spheres):
         if spheres == []:
             pass
         else:
             for sphere in spheres:
-                if np.linalg.norm(self.s - sphere.s) < (self.r + sphere.r): # checks for collision using euclidian distance
+                if np.linalg.norm(dronehitbox.s - sphere.pos) < (dronehitbox.r + sphere.r): # checks for collision using euclidian distance
                     return True
                 else:
                     return False

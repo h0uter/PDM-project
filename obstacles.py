@@ -1,4 +1,5 @@
 import numpy as np
+import matplotlib.pyplot as plt
 
 class Sphere:
 
@@ -11,7 +12,8 @@ class Sphere:
         x = self.r * np.cos(u) * np.sin(v) + self.pos[0]
         y = self.r * np.sin(u) * np.sin(v) + self.pos[1]
         z = self.r * np.cos(v) + self.pos[2]
-        ax.plot_wireframe(x, y, z, color="r")
+
+        return x, y, z
 
 class SphereManager:
 
@@ -23,8 +25,7 @@ class SphereManager:
     def create_spheres(self):
         sphere_array = []
 
-        for i in n_spheres:
-            sphere = Sphere(r_array[i], pos_array[i])
-            sphere_array.append(sphere.create_sphere)
+        for i in range(self.n_spheres):
+            sphere_array.append(Sphere(self.r_array[i], self.pos_array[i]))
 
         return sphere_array

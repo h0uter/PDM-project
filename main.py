@@ -39,11 +39,11 @@ def update(frame):
 
     for an, start, end in zip(anim[2:], p[1:], thrust_vectors):
         if (np.linalg.norm(end > 1e-5)):
-            an.set_data([start[0], end[0]], [start[1], end[1]])
-            an.set_3d_properties([start[2], end[2]])
+            an.set_data(np.asarray([start[0], end[0]]), np.asarray([start[1], end[1]]))
+            an.set_3d_properties(np.asarray([start[2], end[2]]))
         else:
-            an.set_data([start[0], start[0]], [start[1], start[1]])
-            an.set_3d_properties([start[2], start[2]])
+            an.set_data(np.asarray([start[0], start[0]]), np.asarray([start[1], start[1]]))
+            an.set_3d_properties(np.asarray([start[2], start[2]]))
 
     return anim
 

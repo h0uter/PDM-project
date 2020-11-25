@@ -26,3 +26,7 @@ class CollisionDetector:
                     return True
                 else:
                     return False
+
+    def polygon_collision_detector(self, dronehitbox, polygons):
+        if polygons == []:
+            pass

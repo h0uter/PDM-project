@@ -1,11 +1,12 @@
 import numpy as np
 import matplotlib.pyplot as plt
 import matplotlib.animation as animation
+from mpl_toolkits.mplot3d.art3d import Poly3DCollection
 
 from drone_class import Drone
 from controller import Controller
 from collision_detector import DroneHitbox, CollisionDetector
-from obstacles import SphereManager
+from obstacles import SphereManager, PolygonManager
 
 import os
 
@@ -63,6 +64,7 @@ drone = Drone([x0, y0, z0, 0, 0, 0], [0, 0, 0, 0, 0, 0], dt, l=[0.2,0.2,0.2,0.2]
 controller = Controller(drone)
 drone_hitbox = DroneHitbox(drone.s[:3])
 sphere_manager = SphereManager(1, [[2.5, 2.5, 2.5]], [1])
+polygon_manager = PolygonManager(1, [[[0, 1, 0], [1, 0, 1], [0, 1, 1]]], [[0, 1, 1]])
 p0 = drone.get_drone()
 
 #points on drone
@@ -76,8 +78,9 @@ thrust2 = ax.plot([0,0], [0,0], [0,0], 'b-')
 thrust3 = ax.plot([0,0], [0,0], [0,0], 'b-')
 thrust4 = ax.plot([0,0], [0,0], [0,0], 'b-')
 
-#create sphere objects
+#create obstacle objects
 sphere_array = sphere_manager.create_spheres()
+polygon_array = polygon_manager.create_polygons()
 
 #initialise collision detector
 collision_detector = CollisionDetector()
@@ -86,6 +89,11 @@ collision_detector = CollisionDetector()
 for sphere in sphere_array:
     x, y, z = sphere.create_sphere()
     ax.plot_wireframe(x, y, z, color="r")
+
+#plot polygons
+for polygon in polygon_array:
+    vertices = polygon.create_polygon()
+    ax.add_collection3d(Poly3DCollection(vertices))
 
 anim = motor_locations + frame + thrust1 + thrust2 + thrust3 + thrust4
 

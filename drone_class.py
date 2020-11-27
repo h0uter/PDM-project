@@ -51,7 +51,7 @@ class Drone:
             F_tot = np.add(F_tot, F_global)
             T_tot = np.add(T_tot, T_global)
 
-        ang_acc = np.dot(np.linalg.inv(self.I), T_tot)
+        ang_acc = np.dot(np.linalg.inv(self.I), (T_tot - np.cross(self.s_dot[3:], np.dot(self.I, self.s_dot[3:]))))
         acc = np.add(F_tot / self.m, np.asarray([0, 0, -9.81])) 
 
         #for now no controllers or motors

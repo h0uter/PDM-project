@@ -22,15 +22,27 @@ class Polygon:
         self.xpoints = points[0] #array with x-coordinates of polygon points
         self.ypoints = points[1] #array with y-coordinates of polygon points
         self.zpoints = points[2] #array with z-coordinates of polygon points
+        self.points = points
         self.pos = pos #position of polygon
 
     def create_polygon(self):
-        x = list((np.asarray(self.xpoints) + self.pos[0]))
-        y = list((np.asarray(self.ypoints) + self.pos[1]))
-        z = list((np.asarray(self.zpoints) + self.pos[2]))
+        x = (np.asarray(self.xpoints) + self.pos[0]).tolist()
+        y = (np.asarray(self.ypoints) + self.pos[1]).tolist()
+        z = (np.asarray(self.zpoints) + self.pos[2]).tolist()
         verts = [list(zip(x, y, z))]
 
         return verts
+
+    def polygon_vertices(self):
+        vertices = []
+        for i, points in enumerate(self.points):
+            x = self.points[0][i-1] - self.points[0][i]
+            y = self.points[1][i-1] - self.points[1][i]
+            z = self.points[2][i-1] - self.points[2][i]
+            vertices.append([x, y ,z])
+
+        return vertices
+
 
 class PolygonManager:
 
@@ -46,6 +58,14 @@ class PolygonManager:
             polygon_array.append(Polygon(self.points_array[i], self.pos_array[i]))
 
         return polygon_array
+
+    def get_vertices(self, polygon_array):
+        polygons_vertices = []
+
+        for polygon in polygon_array:
+            polygons_vertices.append(polygon.polygon_vertices())
+
+        return polygons_vertices
 
 class SphereManager:
 

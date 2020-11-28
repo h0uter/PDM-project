@@ -22,7 +22,8 @@ class Polygon:
         self.xpoints = points[0] #array with x-coordinates of polygon points
         self.ypoints = points[1] #array with y-coordinates of polygon points
         self.zpoints = points[2] #array with z-coordinates of polygon points
-        self.points = points
+        self.points = points # array of polygon points [[x_array_1], [y_array_1], [z_array_1]]
+        self.center = [sum(self.xpoints)/len(self.points), sum(self.ypoints)/len(self.points), sum(self.zpoints)/len(self.points)]
         self.pos = pos #position of polygon
 
     def create_polygon(self):

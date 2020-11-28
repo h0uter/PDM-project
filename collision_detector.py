@@ -16,33 +16,42 @@ class CollisionDetector:
 
     def check_collision(self, dronehitbox, spheres, polygons, polygons_vertices):
         collision = False
-        if self.sphere_collision_detector(dronehitbox, spheres) or self.polygon_collision_detector(dronehitbox, polygons, polygons_vertices):
+        detection_radius = 1
+
+        if self.sphere_collision_detector(dronehitbox, spheres) or self.polygon_collision_detector(dronehitbox, polygons, polygons_vertices, detection_radius):
             collision = True
 
         return collision
 
     def sphere_collision_detector(self, dronehitbox, spheres):
-        collision = False
+        sphere_collision = False
         if spheres == []:
             pass
         else:
             for sphere in spheres:
-                if np.linalg.norm(dronehitbox.s - sphere.pos) < (dronehitbox.r + sphere.r): # checks for collision using euclidian distance
-                    collision = True
-        return collision
 
-    def polygon_collision_detector(self, dronehitbox, polygons, polygons_vertices):
-        collision = False
+                if np.linalg.norm(dronehitbox.s - sphere.pos) < (dronehitbox.r + sphere.r): # checks for collision using euclidian distance
+                    sphere_collision = True
+
+        return sphere_collision
+
+    def polygon_collision_detector(self, dronehitbox, polygons, polygons_vertices, detection_radius):
+        polygon_collision = False
         if polygons == []:
             pass
         else:
             for i, polygon in enumerate(polygons):
-                if self.polygon_vertices_collision(dronehitbox, polygon, i):
-                    collision = True
-        return collision
+
+                if (dronehitbox.s - polygon.center) > detection_radius:
+                    polygon_collision = False
+
+                elif self.polygon_vertices_collision(dronehitbox, polygon, i):
+                    polygon_collision = True
+
+        return polygon_collision
 
     def polygon_vertices_collision(self, dronehitbox, polygon, i):
-        collision = False
+        vertices_collision = False
         for j, vertix in enumerate(polygon.polygon_vertices()):
             circle_vector_x = dronehitbox.s[0] - polygon.points[0][j]
             circle_vector_y = dronehitbox.s[1] - polygon.points[1][j]
@@ -65,6 +74,6 @@ class CollisionDetector:
                 distance_vector = [point_on_line[0] + polygon.points[0][j], point_on_line[1] + polygon.points[1][j], point_on_line[2] + polygon.points[2][j]]
 
             if np.linalg.norm(dronehitbox.s - distance_vector) < dronehitbox.r:
-                collision = True
+                vertices_collision = True
 
-        return collision
+        return vertices_collision

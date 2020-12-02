@@ -1,5 +1,4 @@
 import numpy as np
-import time
 import matplotlib.pyplot as plt
 import matplotlib.animation as animation
 from mpl_toolkits.mplot3d.art3d import Poly3DCollection
@@ -20,11 +19,7 @@ def update(frame):
     controller.update()
     drone.update()
     drone_hitbox.update(drone.s)
-    time1 = time.perf_counter()
-    print(collision_detector.check_collision(drone_hitbox, sphere_array, polygon_array, vertices))
-    time2 = time.perf_counter()
-    time_taken = time2 - time1
-    print(f"Detecting collsions took {time_taken} seconds.")
+    print(collision_detector.check_collision(drone_hitbox, sphere_array, polygon_array, edges))
     p = drone.get_drone()
     thrust_vectors = drone.get_thrust_vectors()
     command_vector = controller.get_command_vector()
@@ -76,7 +71,7 @@ drone_hitbox = DroneHitbox(drone.s[:3])
 sphere_pos = [[0,0,0]]
 sphere_r = [1]
 sphere_manager = SphereManager(1, sphere_pos, sphere_r)
-polygon_points = [[[2.7, 2.2, 2.5], [2.3, 2.3, 2.6], [2.4, 2.6, 2.7]], [[2.7, 2.2, 4], [2.3, 2.3, 3.9], [2.4, 2.6, 4.1]]]
+polygon_points = [[[2.7, 2.2, 2.5], [4, 1, 2.6], [3, 6, 2.7]], [[1, 5, 4], [2, 3, 1], [3, 4, 5]]]
 polygon_pos = [[0, 0, 0], [0, 0, 0]]
 polygon_manager = PolygonManager(2, polygon_points, polygon_pos)
 p0 = drone.get_drone()
@@ -98,7 +93,7 @@ polygon_array = polygon_manager.create_polygons()
 
 #initialise collision detector
 collision_detector = CollisionDetector()
-vertices = polygon_manager.get_vertices(polygon_array)
+edges = polygon_manager.get_edges(polygon_array)
 
 
 #plot spheres
@@ -108,8 +103,8 @@ for sphere in sphere_array:
 
 #plot polygons
 for polygon in polygon_array:
-    vertices = polygon.create_polygon()
-    ax.add_collection3d(Poly3DCollection(vertices))
+    edges = polygon.create_polygon()
+    ax.add_collection3d(Poly3DCollection(edges))
 
 anim = motor_locations + frame + thrust1 + thrust2 + thrust3 + thrust4
 

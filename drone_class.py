@@ -28,7 +28,7 @@ class Drone:
         dr = [1, 1, -1, -1]
 
         self.motor_pos = np.asarray([[0, l[0], 0], [0, -l[2], 0], [l[1], 0, 0], [-l[3], 0, 0]]) # motor positions are [A, D, B, C]
-        self.motors = [Motor(0.0002, 500, 25, 0.02, dr[i], dt) for i in range(4)]
+        self.motors = [Motor(0.0002, 500, 25, 0.002, dr[i], dt) for i in range(4)]
 
         self.motor_commands = np.asarray([0, 0, 0, 0])
         self.motor_speeds = np.asarray([0, 0, 0, 0])

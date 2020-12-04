@@ -7,21 +7,23 @@ class Controller:
     def __init__(self, drone):
         self.drone = drone
         self.command_vector = [200, 250, 120, 250]
-        self.target = np.array([3, 3, 3]) # x, y, z
+        self.target = np.array([0, 0, 5]) # x, y, z
 
-        self.Kp_z = 30
-        self.Kd_z = 14
+        self.Kp_z = 10
+        self.Kd_z = 8
 
-        self.Kp = 1
-        self.Kd = 0.5
+        self.Kp = 0.1
+        self.Kd = 0.1
 
-        self.Kp_a = 10
-        self.Kd_a = 5
+        self.Kp_a = 2
+        self.Kd_a = 0.5
 
         self.prev_local_pos_error = np.array([0, 0, 0])
         self.prev_orientation_error = np.array([0, 0, 0])
         self.dt = 0.01
         self.time = 0
+
+        self.MAX_ROT = np.pi/8
 
     def update(self):
         # self.command_vector = [random.randint(100, 500), random.randint(100, 500), random.randint(100, 500), random.randint(100, 500)]
@@ -74,9 +76,9 @@ class Controller:
 
         # limit target orientation to 45deg
         roll_reference = np.maximum(
-            np.minimum(roll_reference, np.pi/8),  -np.pi/8)
+            np.minimum(roll_reference, self.MAX_ROT),  -self.MAX_ROT)
         pitch_reference = np.maximum(
-            np.minimum(pitch_reference, np.pi/8),  -np.pi/8)
+            np.minimum(pitch_reference, self.MAX_ROT),  -self.MAX_ROT)
 
         target_orientation = np.array(
             [roll_reference, pitch_reference, yaw_reference])
@@ -93,8 +95,8 @@ class Controller:
                                self.prev_orientation_error)/self.dt
         d_orientation = self.Kp_a*orientation_error + self.Kd_a*d_orientation_error
 
-        roll_cmd = -d_orientation[0]  # + moves in +y
-        pitch_cmd = d_orientation[1] # + moves in +x
+        roll_cmd = -d_orientation[0]/self.drone.motor_pos[0][1]  # + moves in +y
+        pitch_cmd = d_orientation[1]/self.drone.motor_pos[2][0] # + moves in +x
         yaw_cmd = d_orientation[2]
 
         """THRUST CONTROLLER"""

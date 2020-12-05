@@ -1,4 +1,5 @@
 import datetime as dt
+from functools import total_ordering
 import numpy as np
 import matplotlib.pyplot as plt
 import matplotlib.animation as animation
@@ -10,11 +11,11 @@ import os
 
 dt = 0.01
 controller_data, motor_data = np.zeros(4), np.zeros(4)
-reference_data, position_data = np.zeros(3), np.zeros(3)
+reference_data, state_data = np.zeros(6), np.zeros(6)
 
 def update(frame):
     global controller_data, motor_data
-    global reference_data, position_data
+    global reference_data, state_data
 
     controller.update()
     drone.update()
@@ -29,12 +30,14 @@ def update(frame):
         print("motor {} command velocity: {}".format(motor_id, ''.join(['#']*((int) (command / 10))) ))
         print("motor {} current velocity: {}".format(motor_id, ''.join(['+']*((int) (abs(speed) / 10))) ))
     
+    # controller data for comand vs motor response
     controller_data = np.vstack((controller_data, command_vector))
     motor_data = np.vstack((motor_data, speed_vector))
     
-    print("position_data: ", drone.eye_of_god()[0:3])
-    reference_data = np.vstack((reference_data, controller.target))
-    position_data = np.vstack((position_data, drone.eye_of_god()[0:3]))
+    # references for controller tuning
+    reference_data = np.vstack((reference_data, np.append(controller.target, controller.target_orientation)))
+    state_data = np.vstack((state_data, drone.eye_of_god()[0:6]))
+
 
     # NOTE: there is no .set_data() for 3 dim data...
     anim[0].set_data(p[:,0], p[:,1])
@@ -104,14 +107,14 @@ for i, motor_id in enumerate(['A', 'C', 'B', 'D']):
 plt.legend()
 plt.show()
 
-fig, axs = plt.subplots(3, 1)
+fig, axs = plt.subplots(6, 1)
 
-for i, direction_id in enumerate(['x', 'y', 'z']):
+for i, direction_id in enumerate(['x', 'y', 'z', "pitch", "roll", "yaw"]):
 
     axs[i].set_title("reference target {}".format(direction_id))
     y = reference_data[:, i]
     axs[i].plot(np.arange(len(y))*dt, y, 'b-', label='reference')
-    y = np.abs(position_data[:, i])
+    y = np.abs(state_data[:, i])
     axs[i].plot(np.arange(len(y))*dt, y, 'r-', label='position')
     axs[i].set_xlabel('time (s)')
     axs[i].set_ylabel('pos (m)')

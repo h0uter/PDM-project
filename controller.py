@@ -7,9 +7,11 @@ class Controller:
     def __init__(self, drone):
         self.drone = drone
         self.command_vector = [200, 250, 120, 250]
-        self.target = np.array([4, 4, 5]) # x, y, z
 
-        
+        # TODO: merge target orientation and position
+        self.target = np.array([4, 4, 5]) # x, y, z
+        self.target_orientation = np.array([0, 0, 0])
+
         self.Kp_z = 10
         self.Kd_z = 8
 
@@ -81,14 +83,14 @@ class Controller:
         pitch_reference = np.maximum(
             np.minimum(pitch_reference, self.MAX_ROT),  -self.MAX_ROT)
 
-        target_orientation = np.array(
+        self.target_orientation = np.array(
             [roll_reference, pitch_reference, yaw_reference])
 
 
-        orientation_error = target_orientation - rot@state[3:6]
+        orientation_error = self.target_orientation - rot@state[3:6]
 
         print('[Roll, Pitch, Yaw] state: ', rot@state[3:6])
-        print('[Roll, Pitch, Yaw] target: ', target_orientation)
+        print('[Roll, Pitch, Yaw] target: ', self.target_orientation)
         print("[Roll, Pitch, Yaw] error:", orientation_error)
 
 

@@ -7,8 +7,9 @@ class Controller:
     def __init__(self, drone):
         self.drone = drone
         self.command_vector = [200, 250, 120, 250]
-        self.target = np.array([0, 0, 5]) # x, y, z
+        self.target = np.array([4, 4, 5]) # x, y, z
 
+        
         self.Kp_z = 10
         self.Kd_z = 8
 

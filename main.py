@@ -109,12 +109,12 @@ plt.show()
 
 fig, axs = plt.subplots(6, 1)
 
-for i, direction_id in enumerate(['x', 'y', 'z', "pitch", "roll", "yaw"]):
+for i, direction_id in enumerate(['x', 'y', 'z', "roll", "pitch", "yaw"]):
 
     axs[i].set_title("reference target {}".format(direction_id))
     y = reference_data[:, i]
     axs[i].plot(np.arange(len(y))*dt, y, 'b-', label='reference')
-    y = np.abs(state_data[:, i])
+    y = state_data[:, i]
     axs[i].plot(np.arange(len(y))*dt, y, 'r-', label='position')
     axs[i].set_xlabel('time (s)')
     axs[i].set_ylabel('pos (m)')

@@ -13,7 +13,8 @@ class DroneHitbox:
 class CollisionDetector:
 
     def __init__(self):
-        pass
+        self.sphere_collision_point = []
+        self.polygon_collision_point = []
 
     def check_collision(self, dronehitbox, spheres, polygons, polygons_edges):
         collision = False
@@ -38,6 +39,14 @@ class CollisionDetector:
             for sphere in spheres:
 
                 if np.linalg.norm(dronehitbox.s - sphere.pos) < (dronehitbox.r + sphere.r): # checks for collision using euclidian distance
+                    delta = sphere.pos - dronehitbox.s
+                    if sphere.r < dronehitbox.r:
+                        ratio = (sphere.r/dronehitbox.r)
+
+                    else:
+                        ratio = (dronehitbox.r/sphere.r)
+
+                    self.sphere_collision_point = (ratio * delta + dronehitbox.s).tolist()
                     return True
 
         return sphere_collision
@@ -46,23 +55,30 @@ class CollisionDetector:
         polygon_collision = False
         if polygons == []:
             pass
+
         else:
             for i, polygon in enumerate(polygons):
+                edges = polygon.polygon_edges()
+                normal_plane = np.cross(edges[0], edges[1])
 
-                if (np.linalg.norm(dronehitbox.s - polygon.center)) > detection_radius:
-                    polygon_collision = False
+                D_plane = -normal_plane[0] * (polygon.xpoints[0] + polygon.pos[0]) - normal_plane[1] * (polygon.ypoints[0] + polygon.pos[1]) - normal_plane[2] * (polygon.zpoints[0] + polygon.pos[2])
 
-                elif self.polygon_edges_collision(dronehitbox, polygon):
+                distance_to_plane = (normal_plane[0] * dronehitbox.s[0] + normal_plane[1] * dronehitbox.s[1] + normal_plane[2] * dronehitbox.s[2] + D_plane) / np.linalg.norm(normal_plane)
+
+                if distance_to_plane > dronehitbox.r:
+                    return False
+
+                elif self.polygon_surface_collision(dronehitbox, polygon, edges, normal_plane):
                     return True
 
-                elif self.polygon_surface_collision(dronehitbox, polygon):
+                elif self.polygon_edges_collision(dronehitbox, polygon, edges):
                     return True
 
         return polygon_collision
 
-    def polygon_edges_collision(self, dronehitbox, polygon):
+    def polygon_edges_collision(self, dronehitbox, polygon, edges):
         edges_collision = False
-        for j, edge in enumerate(polygon.polygon_edges()):
+        for j, edge in enumerate(edges):
             # calculating vector between hitbox and vertix of the polygon edge
             circle_vector_x = dronehitbox.s[0] - polygon.xpoints[j]
             circle_vector_y = dronehitbox.s[1] - polygon.ypoints[j]
@@ -92,28 +108,16 @@ class CollisionDetector:
 
         return edges_collision
 
-    def polygon_surface_collision(self, dronehitbox, polygon):
+    def polygon_surface_collision(self, dronehitbox, polygon, edges, normal_plane):
         intsect_plane = False
         inside_polygon = False
 
-        edges = polygon.polygon_edges()
-        normal_plane = np.cross(edges[0], edges[1])
         norm_of_normal = normal_plane / np.linalg.norm(normal_plane)
 
-        D_plane = -normal_plane[0] * (polygon.xpoints[0] + polygon.pos[0]) - normal_plane[1] * (polygon.ypoints[0] + polygon.pos[1]) - normal_plane[2] * (polygon.zpoints[0] + polygon.pos[2])
-
-        distance_to_plane = (normal_plane[0] * dronehitbox.s[0] + normal_plane[1] * dronehitbox.s[1] + normal_plane[2] * dronehitbox.s[2] + D_plane) / np.linalg.norm(normal_plane)
-
-        if distance_to_plane <= dronehitbox.r:
-            intsect_plane = True
-
-        else:
-            return False
-
         if self.projected_inside_plane(edges, normal_plane, polygon, norm_of_normal, dronehitbox):
-            inside_polygon = True
+            return True
 
-        return (intsect_plane and inside_polygon)
+
 
     def projected_inside_plane(self, edges, normal_plane, polygon, norm_of_normal, dronehitbox):
             # projecting circle centre point to polygon plane

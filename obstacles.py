@@ -38,7 +38,6 @@ class Polygon:
         self.ypoints = np.asarray([points[0][1], points[1][1], points[2][1]]) #array with y-coordinates of polygon points
         self.zpoints = np.asarray([points[0][2], points[1][2], points[2][2]]) #array with z-coordinates of polygon points
         self.points = points # array of polygon points [[xyz_p1_pol1], [xyz_p2_pol1], [xyz_p3_pol1]]
-        self.center = [sum(self.xpoints)/len(self.points), sum(self.ypoints)/len(self.points), sum(self.zpoints)/len(self.points)]
         self.pos = np.asarray(pos) #position of polygon
 
     def create_polygon(self):

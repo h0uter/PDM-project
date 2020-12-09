@@ -1,6 +1,7 @@
 import numpy as np
 import matplotlib.pyplot as plt
 import matplotlib.animation as animation
+import config as cfg
 from mpl_toolkits.mplot3d.art3d import Poly3DCollection
 
 from drone_class import Drone
@@ -20,6 +21,19 @@ def update(frame):
     drone.update()
     drone_hitbox.update(drone.s)
     print(collision_detector.check_collision(drone_hitbox, sphere_array, polygon_array, edges))
+    if collision_detector.sphere_collision_point != []:
+        print(collision_detector.sphere_collision_point)
+        x = collision_detector.sphere_collision_point[0]
+        y = collision_detector.sphere_collision_point[1]
+        z = collision_detector.sphere_collision_point[2]
+        ax.plot(x, y, z, 'bo')
+        collision_detector.sphere_collision_point = []
+
+    elif collision_detector.polygon_collision_point != []:
+        ax.plot(collision_detector.polygon_collision_point, 'bo')
+        collision_detector.polygon_collision_point = []
+
+
     p = drone.get_drone()
     thrust_vectors = drone.get_thrust_vectors()
     command_vector = controller.get_command_vector()
@@ -62,18 +76,17 @@ ax.set_zlim3d([0.0, 5.0])
 ax.set_xlim3d([0.0, 5.0])
 ax.set_ylim3d([0.0, 5.0])
 
+ax.view_init(azim=45, elev=0)
+ax.set_xlabel('$X$', fontsize=20)
+ax.set_ylabel('$Y$', fontsize=20)
+ax.set_zlabel('$Z$', fontsize=20)
+
 x0,y0,z0 = 2.5,2.5,2.5
 drone = Drone([x0, y0, z0, 0, 0, 0], [0, 0, 0, 0, 0, 0], dt, l=[0.2,0.2,0.2,0.2])
 controller = Controller(drone)
 drone_hitbox = DroneHitbox(drone.s[:3])
-#sphere_pos = [[2.5, 2.5, 2.5], [2.5, 2.5, 1], [2.5, 2.5, 2], [2.5, 2.5, 3], [2.5, 2.5, 4]]
-#sphere_r = [0.5, 0.5, 0.5, 0.5, 0.5]
-sphere_pos = [[0,0,0]]
-sphere_r = [1]
-sphere_manager = SphereManager(1, sphere_pos, sphere_r)
-polygon_points = [[[2.7, 2.2, 2.5], [4, 1, 2.6], [3, 6, 2.7]], [[1, 5, 4], [2, 3, 1], [3, 4, 5]]]
-polygon_pos = [[0, 0, 0], [0, 0, 0]]
-polygon_manager = PolygonManager(2, polygon_points, polygon_pos)
+sphere_manager = SphereManager(cfg.n_spheres, cfg.spheres_pos, cfg.spheres_r)
+polygon_manager = PolygonManager(cfg.n_polygons, cfg.polygons, cfg.polygons_pos)
 p0 = drone.get_drone()
 
 #points on drone

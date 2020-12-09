@@ -21,7 +21,7 @@ def update(frame):
     drone.update()
     drone_hitbox.update(drone.s)
     print(collision_detector.check_collision(drone_hitbox, sphere_array, polygon_array, edges))
-    if collision_detector.sphere_collision_point != []:
+    if collision_detector.sphere_collision_point:
         print(collision_detector.sphere_collision_point)
         x = collision_detector.sphere_collision_point[0]
         y = collision_detector.sphere_collision_point[1]
@@ -29,8 +29,11 @@ def update(frame):
         ax.plot(x, y, z, 'bo')
         collision_detector.sphere_collision_point = []
 
-    elif collision_detector.polygon_collision_point != []:
-        ax.plot(collision_detector.polygon_collision_point, 'bo')
+    elif collision_detector.polygon_collision_point:
+        x = collision_detector.polygon_collision_point[0]
+        y = collision_detector.polygon_collision_point[1]
+        z = collision_detector.polygon_collision_point[2]
+        ax.plot(x, y, z, 'bo')
         collision_detector.polygon_collision_point = []
 
 
@@ -73,7 +76,7 @@ fig = plt.figure()
 ax = fig.add_subplot(projection="3d")
 
 ax.set_zlim3d([0.0, 5.0])
-ax.set_xlim3d([0.0, 5.0])
+ax.set_xlim3d([5.0, 0.0])
 ax.set_ylim3d([0.0, 5.0])
 
 ax.view_init(azim=45, elev=0)

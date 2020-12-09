@@ -6,7 +6,7 @@ spheres_pos = []
 n_spheres = 0
 
 polygons = []
-polygons.append([[2.5, 1, 3.1], [2.5, 4, 3.1], [3, 6, 3.1]])
+polygons.append([[3, 2, 3.1], [1, 5, 3.1], [4, 3, 3.1]])
 #polygons.append([[1, 5, 4], [2, 3, 1], [3, 4, 5]])
 
 polygons_pos = []

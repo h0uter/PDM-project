@@ -1,6 +1,9 @@
 import numpy as np
 import matplotlib.pyplot as plt
 
+import matplotlib.pyplot as plt
+from mpl_toolkits.mplot3d import Axes3D
+
 class Graph:
     def __init__(self, start, goal):
         self.graph = {}
@@ -19,6 +22,20 @@ class Graph:
     
     def get_graph(self):
         return self.graph
+    
+    def plot_graph(self):
+        fig = plt.figure()
+        ax = fig.add_subplot(111, projection='3d')
+
+        #plot nodes
+        for _, node in self.graph.items():
+            ax.scatter(node.pos[0], node.pos[1], node.pos[2], s=10, label=node.label)
+            for edge in node.get_edges():
+                x1, y1, z1 = edge.node1.pos[0], edge.node1.pos[1], edge.node1.pos[2]
+                x2, y2, z2 = edge.node2.pos[0], edge.node2.pos[1], edge.node2.pos[2]
+                ax.plot([x1, x2], [y1, y2], [z1, z2])
+        
+        plt.show()
 
 class Node:
     def __init__(self, label, pos, goal_pos, edges=[]):
@@ -45,27 +62,3 @@ class Edge:
         p2 = self.node2.pos
 
         return np.linalg.norm(p1 - p2)
-
-start = np.asarray([2,2])
-goal = np.asarray([5,3])
-g = Graph(start, goal)
-
-g.add_node(np.asarray([4,4]), g.get_graph()['start'])
-g.add_node(np.asarray([3,-2]), g.get_graph()[1])
-#g.add_node(np.asarray([8,-2]), 'goal')
-
-def visualize_graph():
-    graph = g.get_graph()
-    for label, node in graph.items():
-        print(label, node.dis_to_goal)
-        plt.scatter(node.pos[0], node.pos[1], label=label)
-        for edge in node.get_edges():
-            x1, y1 = edge.node1.pos[0], edge.node1.pos[1]
-            x2, y2 = edge.node2.pos[0], edge.node2.pos[1]
-            plt.plot([x1, x2], [y1, y2])
-            print(label, edge.node1.label, edge.node2.label, edge.cost)
-
-    plt.legend()
-    plt.show()
-
-visualize_graph()

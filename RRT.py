@@ -1,7 +1,6 @@
 import numpy as np
 from graph import Graph
-
-import time
+from A_star import A_star
 
 class RRT:
 
@@ -11,7 +10,7 @@ class RRT:
         self.search_range = search_range
         self.max_iters = max_iters
 
-        np.random.seed(420)
+        np.random.seed(69)
 
     def get_closest_point(self, point):
         shortest_distance = 1e6
@@ -47,7 +46,7 @@ class RRT:
         return closest_node, new_pos
 
     def check_collision(self, pos1, pos2):
-        #TODO, check position 2 on collisions and vector pos2 - pos1
+        #TODO, check position 2 on collisions and vector pos2 - pos1, possible with steering function
         return False
     
     def check_line_of_sight(self, node):
@@ -55,7 +54,7 @@ class RRT:
         # there are no obstacles now so this would always connect these
         pass
 
-    def compute_path(self):
+    def compute_paths(self):
         for _ in range(self.max_iters):
             closest_node, new_node_pos = self.get_new_node()
             if (not self.check_collision(closest_node.pos, new_node_pos)):
@@ -64,10 +63,6 @@ class RRT:
                 continue
             
         self.graph.plot_graph()
-
-start = np.asarray([3,3,4])
-goal = np.asarray([7,3,7])
-search_range = 0.5
-domain = ((0, 10), (0, 10), (0, 10))
-rrt = RRT(start, goal, search_range, domain, max_iters=1000)
-rrt.compute_path()
+    
+    def get_graph(self):
+        return self.graph

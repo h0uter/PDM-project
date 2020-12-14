@@ -18,7 +18,7 @@ class Graph:
         new_node.add_edge(connected_node)
         connected_node.add_edge(new_node)
 
-        self.graph[self.label] = new_node
+        self.graph[str(self.label)] = new_node
     
     def get_graph(self):
         return self.graph
@@ -36,16 +36,16 @@ class Graph:
                 ax.plot([x1, x2], [y1, y2], [z1, z2])
         
         plt.show()
-
+        
 class Node:
     def __init__(self, label, pos, goal_pos, edges=[]):
-        self.label = label
+        self.label = str(label)
         self.pos = pos
         self.dis_to_goal = np.linalg.norm(pos - goal_pos)
         self.edges = edges
     
     def add_edge(self, connected_node):
-        new_edge = Edge(connected_node, self)
+        new_edge = Edge(self, connected_node)
         self.edges = np.append(self.edges, new_edge)
     
     def get_edges(self):

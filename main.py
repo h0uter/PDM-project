@@ -73,6 +73,10 @@ def update(frame):
             an.set_data(np.asarray([start[0], start[0]]), np.asarray([start[1], start[1]]))
             an.set_3d_properties(np.asarray([start[2], start[2]]))
 
+    anim[-1].set_data(controller.target[0], controller.target[1])
+    anim[-1].set_3d_properties(controller.target[2])
+
+
     return anim
 
 fig = plt.figure()
@@ -115,7 +119,10 @@ thrust2 = ax.plot([0,0], [0,0], [0,0], 'b-')
 thrust3 = ax.plot([0,0], [0,0], [0,0], 'b-')
 thrust4 = ax.plot([0,0], [0,0], [0,0], 'b-')
 
-anim = motor_locations + frame + thrust1 + thrust2 + thrust3 + thrust4
+#Target Location
+target_location = ax.plot(controller.target[0], controller.target[1], controller.target[2], 'go')
+
+anim = motor_locations + frame + thrust1 + thrust2 + thrust3 + thrust4 + target_location
 ani = animation.FuncAnimation(fig, update, interval = dt**1000, blit=False)
 
 plt.show()

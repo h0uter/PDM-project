@@ -10,10 +10,28 @@ import os
 dt = 0.01
 controller_data, motor_data = np.zeros(4), np.zeros(4)
 
+def plot_motor_data(controller_data, motor_data):
+    controller_data = np.asarray(controller_data)
+    motor_data = np.asarray(motor_data)
+
+    fig, axs = plt.subplots(4, 1)
+
+    for i, motor_id in enumerate(['A', 'B', 'C', 'D']):
+        axs[i].set_title("motor {}".format(motor_id))
+        y = controller_data[:, i]
+        axs[i].plot(np.arange(len(y))*dt, y, 'b-', label='motor commands')
+        y = np.abs(motor_data[:, i])
+        axs[i].plot(np.arange(len(y))*dt, y, 'r-', label='motor speeds')
+        axs[i].set_xlabel('time (s)')
+        axs[i].set_ylabel('speed')
+
+    plt.legend()
+    plt.show()
+
 def update(frame):
     global controller_data, motor_data
 
-    controller.update()
+    drone.set_motor_commands([100, 100, 200, 100])
     drone.update()
     p = drone.get_drone()
     thrust_vectors = drone.get_thrust_vectors()
@@ -55,7 +73,20 @@ ax.set_xlim3d([0.0, 5.0])
 ax.set_ylim3d([0.0, 5.0])
 
 x0,y0,z0 = 2.5,2.5,2.5
-drone = Drone([x0, y0, z0, 0, 0, 0], [0, 0, 0, 0, 0, 0], dt, l=[0.2,0.2,0.2,0.2])
+
+drone = Drone(s0=np.asarray([x0, y0, z0, 0, 0, 0]), #initial state
+              s_dot0 = np.zeros(6,),                #intitial velocities
+              dt = 0.01,                            #seconds, timestep
+              m = 2,                                #kg, total mass of drone
+              I = 0.1,                              #kg*m^2, total drone inertia
+              L = 0.2,                              #m, length of each motor arm
+              kf = 0.0009,                          #kg*m, force coefficient
+              km = 0.0001,                          #kg*m^2, moment coefficient
+              max_motor_torque = 15,                #Nm, max load torque motors
+              max_motor_omega = 350,                #rad/s, max speed motors
+              propellor_inertia = 0.001             #kg*m^2, propellor inertia
+              )
+
 controller = Controller(drone)
 p0 = drone.get_drone()
 
@@ -71,23 +102,8 @@ thrust3 = ax.plot([0,0], [0,0], [0,0], 'b-')
 thrust4 = ax.plot([0,0], [0,0], [0,0], 'b-')
 
 anim = motor_locations + frame + thrust1 + thrust2 + thrust3 + thrust4
-
 ani = animation.FuncAnimation(fig, update, interval = dt**1000, blit=False)
 
 plt.show()
-controller_data = np.asarray(controller_data)
-motor_data = np.asarray(motor_data)
 
-fig, axs = plt.subplots(4, 1)
-
-for i, motor_id in enumerate(['A', 'C', 'B', 'D']):
-    axs[i].set_title("motor {}".format(motor_id))
-    y = controller_data[:, i]
-    axs[i].plot(np.arange(len(y))*dt, y, 'b-', label='motor commands')
-    y = np.abs(motor_data[:, i])
-    axs[i].plot(np.arange(len(y))*dt, y, 'r-', label='motor speeds')
-    axs[i].set_xlabel('time (s)')
-    axs[i].set_ylabel('speed')
-
-plt.legend()
-plt.show()
+plot_motor_data(controller_data, motor_data)

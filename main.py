@@ -42,11 +42,11 @@ def update(frame):
     command_vector = controller.get_command_vector()
     speed_vector = drone.get_motor_speeds()
 
-    os.system('cls' if os.name == 'nt' else 'clear')
-    motors = ['A', 'C', 'B', 'D']
-    for motor_id, command, speed in zip(motors, command_vector, speed_vector):
-        print("motor {} command velocity: {}".format(motor_id, ''.join(['#']*((int) (command / 10))) ))
-        print("motor {} current velocity: {}".format(motor_id, ''.join(['+']*((int) (abs(speed) / 10))) ))
+    #os.system('cls' if os.name == 'nt' else 'clear')
+    #motors = ['A', 'C', 'B', 'D']
+    #for motor_id, command, speed in zip(motors, command_vector, speed_vector):
+    #    print("motor {} command velocity: {}".format(motor_id, ''.join(['#']*((int) (command / 10))) ))
+    #    print("motor {} current velocity: {}".format(motor_id, ''.join(['+']*((int) (abs(speed) / 10))) ))
     
     # controller data for comand vs motor response
     controller_data = np.vstack((controller_data, command_vector))
@@ -88,7 +88,7 @@ ax.set_ylabel('$Y$', fontsize=20)
 ax.set_zlabel('$Z$', fontsize=20)
 ax.view_init(azim=0, elev=90)
 
-drone = Drone(s0=np.asarray([x0, y0, z0, 0, 0, 0]), #initial state
+drone = Drone(s0=np.asarray([x0, y0, z0, 0, 0, 0]), #initial state  
               s_dot0 = np.zeros(6,),                #intitial velocities
               dt = 0.01,                            #seconds, timestep
               m = 2,                                #kg, total mass of drone

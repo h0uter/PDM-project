@@ -12,6 +12,8 @@ class Controller:
         self.target = np.array([4, 4, 2.5]) # x, y, z
         self.target_orientation = np.array([0, 0, 0])
 
+        self.new_target = True
+
         # Height gain
         self.Kp_z = 10
         self.Kd_z = 8
@@ -58,6 +60,9 @@ class Controller:
 
         d_local_pos_error = np.maximum(np.minimum((local_pos_error - self.prev_local_pos_error)/self.dt, self.MAX_D_POS_ERROR), -self.MAX_D_POS_ERROR)
 
+        if self.new_target:
+            d_local_pos_error = np.zeros((3))
+
         angle_reference = self.Kp * \
             local_pos_error[0:2] + self.Kd*d_local_pos_error[0:2]
 
@@ -90,12 +95,15 @@ class Controller:
 
         d_orientation_error = np.maximum(np.minimum((orientation_error -
                                self.prev_orientation_error)/self.dt, self.MAX_D_ORIENT_ERROR), -self.MAX_D_ORIENT_ERROR)
+        
+        if self.new_target:
+            d_orientation_error = np.zeros((3))
 
 
         d_orientation = self.Kp_a*orientation_error + self.Kd_a*d_orientation_error
 
-        roll_cmd = -d_orientation[0]/self.drone.motor_pos[0][1]  # + moves in +y
-        pitch_cmd = d_orientation[1]/self.drone.motor_pos[2][0] # + moves in +x
+        roll_cmd = -d_orientation[0]/0.2  # + moves in +y
+        pitch_cmd = d_orientation[1]/0.2 # + moves in +x
         yaw_cmd = d_orientation[2]
 
         """THRUST CONTROLLER"""
@@ -111,24 +119,24 @@ class Controller:
 
         """MOTOR MIXING ALGORITHM"""
 
-        motor_A = thrust_cmd - roll_cmd - yaw_cmd
-        motor_B = thrust_cmd - pitch_cmd + yaw_cmd
-        motor_C = thrust_cmd + pitch_cmd + yaw_cmd
-        motor_D = thrust_cmd + roll_cmd - yaw_cmd
+        motor_A = thrust_cmd - pitch_cmd - yaw_cmd
+        motor_B = thrust_cmd - roll_cmd + yaw_cmd
+        motor_C = thrust_cmd + roll_cmd + yaw_cmd
+        motor_D = thrust_cmd + pitch_cmd - yaw_cmd
 
         # motor cmd array as [ADBC]
-        motor_forces = np.array([motor_A, motor_D, motor_B, motor_C])
+        motor_forces = np.array([motor_A, motor_B, motor_C, motor_D])
         print("motor force pre:", motor_forces)
 
         motor_forces = np.maximum(1, motor_forces)
 
-
         print("motor force post:", motor_forces)
 
         # TODO: better way of sharing drone parameters
-        self.command_vector = np.sqrt(motor_forces/self.drone.motors[0].k)
+        self.command_vector = np.sqrt(motor_forces/self.drone.motors['A'][0].kf)
 
         self.drone.set_motor_commands(self.command_vector)
+        self.new_target = False
 
         self.prev_local_pos_error = local_pos_error
         self.prev_orientation_error = orientation_error
@@ -142,6 +150,7 @@ class Controller:
 
     def set_target(self, pos):
         self.target = pos
+        self.new_target = True
 
     def get_command_vector(self):
         return self.command_vector

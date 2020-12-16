@@ -35,7 +35,7 @@ def update(frame):
     global controller_data, motor_data
     global reference_data, state_data
 
-    drone.set_motor_commands([100, 100, 200, 100])
+    controller.update()
     drone.update()
     p = drone.get_drone()
     thrust_vectors = drone.get_thrust_vectors()

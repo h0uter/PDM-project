@@ -69,6 +69,7 @@ class Drone:
 
         self.s_dot = np.add(self.s_dot, acc_vector * self.dt)
         self.s = np.add(self.s, self.s_dot * self.dt)
+        self.s[5] = 0.
         
     def get_transformation_matrix(self, pitch, roll, yaw):
         q1 = Quaternion(axis=[1., 0., 0.], angle=pitch)

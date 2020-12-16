@@ -72,10 +72,12 @@ class CollisionDetector:
 
                 elif self.polygon_surface_collision(dronehitbox, polygon, edges, normal_plane):
                     self.polygon_collision_point = (dronehitbox.s - distance_to_plane * norm_of_normal).tolist()
+                    print("surface")
                     return True
 
                 elif self.polygon_edges_collision(dronehitbox, polygon, edges):
                     self.polygon_collision_point = (dronehitbox.s - distance_to_plane * norm_of_normal).tolist()
+                    print('edge')
                     return True
 
         return polygon_collision
@@ -113,7 +115,6 @@ class CollisionDetector:
         return edges_collision
 
     def polygon_surface_collision(self, dronehitbox, polygon, edges, normal_plane):
-        intsect_plane = False
         inside_polygon = False
 
         norm_of_normal = normal_plane / np.linalg.norm(normal_plane)

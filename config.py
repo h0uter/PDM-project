@@ -1,15 +1,20 @@
 spheres_r = []
-#spheres_r.append(0.5)
+spheres_r.append(0.5)
 
 spheres_pos = []
-#spheres_pos.append([2.5, 2.5, 4])
+spheres_pos.append([2.5, 2.5, 4])
 n_spheres = 0
 
-polygons = []
-polygons.append([[3, 2, 3.1], [1, 5, 3.1], [4, 3, 3.1]])
-#polygons.append([[1, 5, 4], [2, 3, 1], [3, 4, 5]])
+prisms = []
+prisms.append([1, 3, 2]) #prism width, length, height
 
-polygons_pos = []
-polygons_pos.append([0, 0, 0])
-#polygons_pos.append([0, 0, 0])
-n_polygons = 1
+prisms_pos = []
+prisms_pos.append([2.5, 2.5, 6])
+n_prisms = 1
+
+beams = []
+beams.append([1, 3, 2]) #prism width, length, height
+
+beams_pos = []
+beams_pos.append([1, 1, 3])
+n_beams = 1

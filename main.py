@@ -7,7 +7,7 @@ from mpl_toolkits.mplot3d.art3d import Poly3DCollection
 from drone_class import Drone
 from controller import Controller
 from collision_detector import DroneHitbox, CollisionDetector
-from obstacles import SphereManager, PolygonManager
+from obstacles import SphereManager, BeamManager, PrismManager
 
 import os
 
@@ -20,6 +20,7 @@ def update(frame):
     controller.update()
     drone.update()
     drone_hitbox.update(drone.s)
+    """
     print(collision_detector.check_collision(drone_hitbox, sphere_array, polygon_array, edges))
     if collision_detector.sphere_collision_point:
         print(collision_detector.sphere_collision_point)
@@ -27,6 +28,8 @@ def update(frame):
         y = collision_detector.sphere_collision_point[1]
         z = collision_detector.sphere_collision_point[2]
         ax.plot(x, y, z, 'bo')
+        print(collision_detector.sphere_collision_point)
+        a
         collision_detector.sphere_collision_point = []
 
     elif collision_detector.polygon_collision_point:
@@ -34,8 +37,10 @@ def update(frame):
         y = collision_detector.polygon_collision_point[1]
         z = collision_detector.polygon_collision_point[2]
         ax.plot(x, y, z, 'bo')
+        print(collision_detector.polygon_collision_point)
+        a
         collision_detector.polygon_collision_point = []
-
+    """
 
     p = drone.get_drone()
     thrust_vectors = drone.get_thrust_vectors()
@@ -79,7 +84,7 @@ ax.set_zlim3d([0.0, 5.0])
 ax.set_xlim3d([5.0, 0.0])
 ax.set_ylim3d([0.0, 5.0])
 
-ax.view_init(azim=45, elev=0)
+ax.view_init(azim=60, elev=30)
 ax.set_xlabel('$X$', fontsize=20)
 ax.set_ylabel('$Y$', fontsize=20)
 ax.set_zlabel('$Z$', fontsize=20)
@@ -89,7 +94,8 @@ drone = Drone([x0, y0, z0, 0, 0, 0], [0, 0, 0, 0, 0, 0], dt, l=[0.2,0.2,0.2,0.2]
 controller = Controller(drone)
 drone_hitbox = DroneHitbox(drone.s[:3])
 sphere_manager = SphereManager(cfg.n_spheres, cfg.spheres_pos, cfg.spheres_r)
-polygon_manager = PolygonManager(cfg.n_polygons, cfg.polygons, cfg.polygons_pos)
+prism_manager = PrismManager(cfg.n_prisms, cfg.prisms, cfg.prisms_pos)
+beam_manager = BeamManager(cfg.n_beams, cfg.beams, cfg.beams_pos)
 p0 = drone.get_drone()
 
 #points on drone
@@ -105,11 +111,12 @@ thrust4 = ax.plot([0,0], [0,0], [0,0], 'b-')
 
 #create obstacle objects
 sphere_array = sphere_manager.create_spheres()
-polygon_array = polygon_manager.create_polygons()
+prism_array = prism_manager.create_prisms()
+beam_array = beam_manager.create_beams()
 
 #initialise collision detector
-collision_detector = CollisionDetector()
-edges = polygon_manager.get_edges(polygon_array)
+#collision_detector = CollisionDetector()
+#edges = polygon_manager.get_edges(polygon_array)
 
 
 #plot spheres
@@ -117,10 +124,17 @@ for sphere in sphere_array:
     x, y, z = sphere.create_sphere()
     ax.plot_wireframe(x, y, z, color="r")
 
-#plot polygons
-for polygon in polygon_array:
-    edges = polygon.create_polygon()
-    ax.add_collection3d(Poly3DCollection(edges))
+#plot prisms
+for prism in prism_array:
+    for polygon in prism.polygons_array:
+        edges = polygon.create_polygon()
+        ax.add_collection3d(Poly3DCollection(edges))
+
+#plot beams
+for beam in beam_array:
+    for polygon in beam.polygons_array:
+        edges = polygon.create_polygon()
+        ax.add_collection3d(Poly3DCollection(edges))
 
 anim = motor_locations + frame + thrust1 + thrust2 + thrust3 + thrust4
 

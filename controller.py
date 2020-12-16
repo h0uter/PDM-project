@@ -12,6 +12,7 @@ class Controller:
         self.target = np.array([0, 5, 2.5]) # x, y, z
         self.target_orientation = np.array([0, 0, 0])
 
+        # Disables derivative errors when a new target is set
         self.new_target = True
 
         # Height gain
@@ -26,16 +27,17 @@ class Controller:
         self.Kp_a = 2.0
         self.Kd_a = 1.0
 
-        # Angle -> Thrust Delta Yaw PID
+        # Yaw Angle -> Thrust Delta PID
         self.Kp_ya = 2#0.2
         self.Kd_ya = 2#0.2
 
         self.prev_local_pos_error = np.array([0, 0, 0])
         self.prev_orientation_error = np.array([0, 0, 0])
+        
         self.dt = 0.01
         self.time = 0
 
-        self.MAX_ROT = np.pi/8
+        self.MAX_ROT = np.pi/8 # rad
         self.MAX_D_POS_ERROR = 10 # m/s
         self.MAX_D_ORIENT_ERROR = np.pi/5 # rad/s
 
@@ -73,12 +75,10 @@ class Controller:
         roll_reference = -angle_reference[1]
         pitch_reference = angle_reference[0]
 
-        # rotate for me baby
+        # Don't rotate for me baby
         yaw_reference = 0
 
         """YAW + INNER LOOP PITCH & ROLL ORIENTATION CONTROLLER"""
-        # roll
-        # pitch 
 
         # limit target orientation to 45deg
         roll_reference = np.maximum(
@@ -131,7 +131,6 @@ class Controller:
         motor_C = thrust_cmd + roll_cmd - yaw_cmd
         motor_D = thrust_cmd + pitch_cmd + yaw_cmd
 
-        # motor cmd array as [ADBC]
         motor_forces = np.array([motor_A, motor_B, motor_C, motor_D])
         #print("motor force pre:", motor_forces)
 
@@ -149,7 +148,6 @@ class Controller:
         self.prev_orientation_error = orientation_error
 
         self.time += self.dt
-        # print("time:", self.time)
 
         if sum(abs(global_pos_error)) < 0.2:
             self.set_target(np.random.uniform(0, 5, (3)))
@@ -162,3 +160,9 @@ class Controller:
 
     def get_command_vector(self):
         return self.command_vector
+
+    def steer(self, origin, target):
+        """Takes an origin and target and returns a 3xN matrix of coordinates of a path spline"""
+
+        # For now we will just return a straight line with a 0.2m margin for overshoot
+        return np.vstack((origin, target + 0.2*np.linalg.norm(target-origin)))

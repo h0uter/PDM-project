@@ -20,8 +20,8 @@ def update(frame):
     controller.update()
     drone.update()
     drone_hitbox.update(drone.s)
-    """
-    print(collision_detector.check_collision(drone_hitbox, sphere_array, polygon_array, edges))
+
+    print(collision_detector.check_collision(drone_hitbox, sphere_array, prism_array, beam_array))
     if collision_detector.sphere_collision_point:
         print(collision_detector.sphere_collision_point)
         x = collision_detector.sphere_collision_point[0]
@@ -40,7 +40,7 @@ def update(frame):
         print(collision_detector.polygon_collision_point)
         a
         collision_detector.polygon_collision_point = []
-    """
+
 
     p = drone.get_drone()
     thrust_vectors = drone.get_thrust_vectors()
@@ -84,7 +84,7 @@ ax.set_zlim3d([0.0, 5.0])
 ax.set_xlim3d([5.0, 0.0])
 ax.set_ylim3d([0.0, 5.0])
 
-ax.view_init(azim=60, elev=30)
+ax.view_init(azim=90, elev=0)
 ax.set_xlabel('$X$', fontsize=20)
 ax.set_ylabel('$Y$', fontsize=20)
 ax.set_zlabel('$Z$', fontsize=20)
@@ -115,7 +115,7 @@ prism_array = prism_manager.create_prisms()
 beam_array = beam_manager.create_beams()
 
 #initialise collision detector
-#collision_detector = CollisionDetector()
+collision_detector = CollisionDetector()
 #edges = polygon_manager.get_edges(polygon_array)
 
 

@@ -38,7 +38,6 @@ class Polygon:
         self.ypoints = np.asarray([points[0][1], points[1][1], points[2][1]]) #array with y-coordinates of polygon points
         self.zpoints = np.asarray([points[0][2], points[1][2], points[2][2]]) #array with z-coordinates of polygon points
         self.points = points # array of polygon points [[xyz_p1_pol1], [xyz_p2_pol1], [xyz_p3_pol1]]
-        print(self.xpoints)
 
     def create_polygon(self):
         x = (self.xpoints).tolist()
@@ -87,7 +86,7 @@ class Prism:
         self.l = length
         self.w = width
         self.center = pos
-        self.polygon_array = []
+        self.polygons_array = []
         self.edges = []
         self.set_points()
 
@@ -114,9 +113,9 @@ class Prism:
         polygon8 = [point[0], point[1], point[4]]
 
         polygon_point_array     = [polygon1, polygon2, polygon3, polygon4, polygon5, polygon6, polygon7, polygon8]
+        #[polygon1, polygon2, polygon3, polygon4, polygon5, polygon6, polygon7, polygon8]
         polygon_manager         = PolygonManager(len(polygon_point_array), polygon_point_array)
         self.polygons_array     = polygon_manager.create_polygons()
-        self.edges              = polygon_manager.get_edges(self.polygons_array)
 
 class PrismManager:
 

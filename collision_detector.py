@@ -3,7 +3,7 @@ import time
 
 class DroneHitbox:
 
-    def __init__(self, s0, r=0.2):
+    def __init__(self, s0, r):
         self.s = np.asarray(s0[:3]) # starting location of drone
         self.r = r # radius of drone hitbox
 
@@ -94,12 +94,12 @@ class CollisionDetector:
                 elif self.polygon_surface_collision(dronehitbox, polygon, edges, normal_plane):
                     self.polygon_collision_point = (dronehitbox.s - distance_to_plane * norm_of_normal).tolist()
                     print("surface")
-                    polygon_collision = True
+                    return True
 
                 elif self.polygon_edges_collision(dronehitbox, polygon, edges):
                     self.polygon_collision_point = (dronehitbox.s - distance_to_plane * norm_of_normal).tolist()
                     print('edge')
-                    polygon_collision = True
+                    return True
 
 
         return polygon_collision
@@ -144,7 +144,7 @@ class CollisionDetector:
         if self.projected_inside_plane(edges, normal_plane, polygon, norm_of_normal, dronehitbox):
             return True
 
-
+        return inside_polygon
 
     def projected_inside_plane(self, edges, normal_plane, polygon, norm_of_normal, dronehitbox):
             # projecting circle centre point to polygon plane

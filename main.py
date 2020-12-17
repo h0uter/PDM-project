@@ -11,7 +11,7 @@ from obstacles import SphereManager, BeamManager, PrismManager
 
 import os
 
-dt = 0.01
+dt = 0.003
 controller_data, motor_data = np.zeros(4), np.zeros(4)
 
 def plot_motor_data(controller_data, motor_data):
@@ -35,7 +35,7 @@ def plot_motor_data(controller_data, motor_data):
 def update(frame):
     global controller_data, motor_data
 
-    drone.set_motor_commands([100, 100, 200, 100])
+    drone.set_motor_commands([140, 200, 140, 200])
     drone.update()
     drone_hitbox.update(drone.s)
 
@@ -123,10 +123,10 @@ drone = Drone(s0=np.asarray([x0, y0, z0, 0, 0, 0]), #initial state
               )
 
 controller = Controller(drone)
-drone_hitbox = DroneHitbox(drone.s[:3])
+drone_hitbox = DroneHitbox(drone.s[:3], cfg.dronehitbox_r)
 sphere_manager = SphereManager(cfg.n_spheres, cfg.spheres_pos, cfg.spheres_r)
-prism_manager = PrismManager(cfg.n_prisms, cfg.prisms, cfg.prisms_pos)
-beam_manager = BeamManager(cfg.n_beams, cfg.beams, cfg.beams_pos)
+prism_manager = PrismManager(cfg.n_prisms, cfg.prisms, cfg.prisms_pos, cfg.dronehitbox_r, cfg.safety_margin)
+beam_manager = BeamManager(cfg.n_beams, cfg.beams, cfg.beams_pos, cfg.dronehitbox_r, cfg.safety_margin)
 p0 = drone.get_drone()
 
 #points on drone

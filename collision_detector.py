@@ -81,7 +81,7 @@ class CollisionDetector:
         else:
             for i, polygon in enumerate(polygons):
                 edges = polygon.polygon_edges()
-                normal_plane = np.cross(edges[0], edges[1])
+                normal_plane = np.cross(edges[0], edges[2])
 
                 norm_of_normal = normal_plane / np.linalg.norm(normal_plane)
 
@@ -92,15 +92,17 @@ class CollisionDetector:
                     polygon_collision = False
 
                 elif self.polygon_surface_collision(dronehitbox, polygon, edges, normal_plane):
-                    self.polygon_collision_point = (dronehitbox.s - distance_to_plane * norm_of_normal).tolist()
+                    t = np.dot((polygon.points[0] - dronehitbox.s), normal_plane) / (np.linalg.norm(normal_plane))**2
+
+                    self.polygon_collision_point = (dronehitbox.s + t * (normal_plane)).tolist()
                     print("surface")
                     return True
-
+                """
                 elif self.polygon_edges_collision(dronehitbox, polygon, edges):
                     self.polygon_collision_point = (dronehitbox.s - distance_to_plane * norm_of_normal).tolist()
                     print('edge')
                     return True
-
+                """
 
         return polygon_collision
 
@@ -141,15 +143,16 @@ class CollisionDetector:
 
         norm_of_normal = normal_plane / np.linalg.norm(normal_plane)
 
-        if self.projected_inside_plane(edges, normal_plane, polygon, norm_of_normal, dronehitbox):
+        if self.point_inside_polygon(edges, normal_plane, polygon, norm_of_normal, dronehitbox):
             return True
 
         return inside_polygon
 
-    def projected_inside_plane(self, edges, normal_plane, polygon, norm_of_normal, dronehitbox):
+    # previous solution for surface collision checking
+    def poi_inside_polygon(self, edges, normal_plane, polygon, norm_of_normal, dronehitbox):
             # projecting circle centre point to polygon plane
             X_of_plane = edges[0] / np.linalg.norm(normal_plane)
-            Y_of_plane = np.cross(norm_of_normal, edges[0]) / np.linalg.norm(np.cross(norm_of_normal, edges[0]))
+            Y_of_plane = np.cross(normal_plane, edges[0]) / np.linalg.norm(np.cross(normal_plane, edges[0]))
 
             projected_drone_center = [np.dot(np.asarray(dronehitbox.s), X_of_plane), np.dot(np.asarray(dronehitbox.s), Y_of_plane)]
             projected_polygon_points =  [[np.dot((polygon.points[0]), X_of_plane), np.dot((polygon.points[0]), Y_of_plane)],
@@ -166,6 +169,34 @@ class CollisionDetector:
 
             else:
                 return True
+
+    def point_inside_polygon(self, edges, normal_plane, polygon, norm_of_normal, dronehitbox):
+
+        #projection of point onto polygon plane
+        t = np.dot((polygon.points[0] - dronehitbox.s), normal_plane) / (np.linalg.norm(normal_plane))**2
+
+        collision_point = dronehitbox.s + t * (normal_plane)
+
+        # edge 0
+        vp0 = collision_point - polygon.points[0]
+        C = np.cross(edges[0], vp0)
+        if np.dot(normal_plane, C) < -1:
+            return False
+
+        # edge 1
+        vp1 = collision_point - polygon.points[1]
+        C = np.cross(edges[1], vp1)
+        if np.dot(normal_plane, C) < -1:
+            return False
+
+        # edge 2
+        vp2 = collision_point - polygon.points[2]
+        edge_2 = polygon.points[0] - polygon.points[2]
+        C = np.cross(edge_2, vp2)
+        if np.dot(normal_plane, C) < -1:
+            return False
+
+        return True
 
     def triangle_area(self, p1, p2, p3):
         # uses 1/2 determinant method to calculate area of triangle

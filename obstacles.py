@@ -49,11 +49,14 @@ class Polygon:
 
     def polygon_edges(self):
         edges = []
-        for i, points in enumerate(self.points):
-            x = self.xpoints[i-1] - self.xpoints[i]
-            y = self.ypoints[i-1] - self.ypoints[i]
-            z = self.zpoints[i-1] - self.zpoints[i]
-            edges.append([x, y ,z])
+
+        self.points[0] = np.asarray(self.points[0])
+        self.points[1] = np.asarray(self.points[1])
+        self.points[2] = np.asarray(self.points[2])
+
+        edges.append(self.points[1] - self.points[0])
+        edges.append(self.points[2] - self.points[1])
+        edges.append(self.points[2] - self.points[0])
 
         return edges
 
@@ -202,7 +205,7 @@ class Beam:
         points = [point1, point2, point3, point4, point5, point6, point7, point8]
         self.set_polygons(points, col=True)
 
-    def set_polygons(self, point):
+    def set_polygons(self, point, col):
 
         polygon1    = [point[5], point[6], point[7]]
         polygon2    = [point[5], point[4], point[6]]
@@ -214,10 +217,11 @@ class Beam:
         polygon8    = [point[5], point[7], point[3]]
         polygon9    = [point[2], point[3], point[6]]
         polygon10   = [point[3], point[7], point[6]]
-        polygon11   = [point[0], point[4], point[5]]
+        polygon11   = [point[0], point[4], point[1]]
         polygon12   = [point[4], point[5], point[1]]
 
         polygon_point_array     = [polygon1, polygon2, polygon3, polygon4, polygon5, polygon6, polygon7, polygon8, polygon9, polygon10, polygon11, polygon12]
+        #[polygon1, polygon2, polygon3, polygon4, polygon5, polygon6, polygon7, polygon8, polygon9, polygon10, polygon11, polygon12]
 
         if col == False:
             polygon_manager         = PolygonManager(len(polygon_point_array), polygon_point_array)
@@ -233,11 +237,13 @@ class BeamManager:
         self.n_beams = n_beams
         self.pos_array = pos_array
         self.dimensions_array = dimensions_array
+        self.dronehitbox_r = dronehitbox_r
+        self.safety_margin = safety_margin
 
     def create_beams(self):
         beams_array = []
 
         for i in range(self.n_beams):
-            beams_array.append(Beam(self.dimensions_array[i][0], self.dimensions_array[i][1], self.dimensions_array[i][2], self.pos_array[i]))
+            beams_array.append(Beam(self.dimensions_array[i][0], self.dimensions_array[i][1], self.dimensions_array[i][2], self.pos_array[i], self.dronehitbox_r, self.safety_margin))
 
         return beams_array

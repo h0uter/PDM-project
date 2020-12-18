@@ -11,7 +11,7 @@ from obstacles import SphereManager, BeamManager, PrismManager
 
 import os
 
-dt = 0.003
+dt = 0.001
 controller_data, motor_data = np.zeros(4), np.zeros(4)
 
 def plot_motor_data(controller_data, motor_data):
@@ -35,13 +35,12 @@ def plot_motor_data(controller_data, motor_data):
 def update(frame):
     global controller_data, motor_data
 
-    drone.set_motor_commands([140, 200, 140, 200])
+    drone.set_motor_commands([150, 150, 150, 150])
     drone.update()
     drone_hitbox.update(drone.s)
 
     print(collision_detector.check_collision(drone_hitbox, sphere_array, prism_array, beam_array))
     if collision_detector.sphere_collision_point:
-        print(collision_detector.sphere_collision_point)
         x = collision_detector.sphere_collision_point[0]
         y = collision_detector.sphere_collision_point[1]
         z = collision_detector.sphere_collision_point[2]
@@ -111,7 +110,7 @@ x0,y0,z0 = 2.5,2.5,2.5
 
 drone = Drone(s0=np.asarray([x0, y0, z0, 0, 0, 0]), #initial state
               s_dot0 = np.zeros(6,),                #intitial velocities
-              dt = 0.01,                            #seconds, timestep
+              dt = 0.005,                            #seconds, timestep
               m = 2,                                #kg, total mass of drone
               I = 0.1,                              #kg*m^2, total drone inertia
               L = 0.2,                              #m, length of each motor arm
@@ -149,7 +148,6 @@ beam_array = beam_manager.create_beams()
 collision_detector = CollisionDetector()
 #edges = polygon_manager.get_edges(polygon_array)
 
-
 #plot spheres
 for sphere in sphere_array:
     x, y, z = sphere.create_sphere()
@@ -159,13 +157,17 @@ for sphere in sphere_array:
 for prism in prism_array:
     for polygon in prism.polygons_array:
         edges = polygon.create_polygon()
-        ax.add_collection3d(Poly3DCollection(edges))
+        drawing = Poly3DCollection(edges)
+        ax.add_collection3d(drawing)
+        drawing.set_alpha(0.3)
 
 #plot beams
 for beam in beam_array:
     for polygon in beam.polygons_array:
         edges = polygon.create_polygon()
-        ax.add_collection3d(Poly3DCollection(edges))
+        drawing = Poly3DCollection(edges)
+        ax.add_collection3d(drawing)
+        drawing.set_alpha(0.3)
 
 anim = motor_locations + frame + thrust1 + thrust2 + thrust3 + thrust4
 ani = animation.FuncAnimation(fig, update, interval = dt**1000, blit=False)

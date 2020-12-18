@@ -108,6 +108,13 @@ drone = Drone(s0=np.asarray([x0, y0, z0, 0, 0, 0]), #initial state
 controller = Controller(drone)
 p0 = drone.get_drone()
 
+path = np.array([[0, 2, 5],
+                 [2, 4, 3],
+                 [2, 1, 3],
+                 [2, 1.5, 3],
+                 [2.5, 1.5, 2]])
+controller.follow_path(path)
+
 #points on drone
 motor_locations = ax.plot(p0[:, 0], p0[:, 1], p0[:, 2], 'ro')
 #frame

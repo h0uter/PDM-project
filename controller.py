@@ -40,8 +40,18 @@ class Controller:
         self.MAX_ROT = np.pi/8 # rad
         self.MAX_D_POS_ERROR = 10 # m/s
         self.MAX_D_ORIENT_ERROR = np.pi/5 # rad/s
+        self.TARGET_REACHED_THRESHOLD = 0.4 # m
+
+        # Path following
+        self.path = None
+        self.current_path_node = 0
+        self.path_finished = False
 
     def update(self):
+
+        if self.path is not None:
+            if (self.target != self.path[self.current_path_node, :]).any():
+                self.set_target(self.path[self.current_path_node, :])
 
         state = self.drone.eye_of_god()
 
@@ -105,7 +115,6 @@ class Controller:
         if self.new_target:
             d_orientation_error = np.zeros((3))
 
-
         d_orientation = self.Kp_a*orientation_error[0:2] + self.Kd_a*d_orientation_error[0:2]
         d_orientation = np.append(d_orientation, self.Kp_ya*orientation_error[2] + self.Kd_ya*d_orientation_error[2])
 
@@ -149,9 +158,20 @@ class Controller:
 
         self.time += self.dt
 
-        if sum(abs(global_pos_error)) < 0.2:
-            self.set_target(np.random.uniform(0, 5, (3)))
-            print("New target", self.target)
+        # This will switch to the next location when within the threshold
+        # If no path is set this will set random locations.
+        if sum(abs(global_pos_error)) < self.TARGET_REACHED_THRESHOLD:
+            if self.path is not None:
+                if self.current_path_node < len(self.path[:, 0]) - 1:
+                    self.current_path_node += 1
+                elif not self.path_finished:
+                    print("Finished path!")
+                    self.path_finished = True
+            else:
+                self.set_target(np.random.uniform(0, 5, (3)))
+
+            if not self.path_finished:
+                print("New target", self.target)
 
 
     def set_target(self, pos):
@@ -162,7 +182,44 @@ class Controller:
         return self.command_vector
 
     def steer(self, origin, target):
-        """Takes an origin and target and returns a 3xN matrix of coordinates of a path spline"""
+        """Takes an origin and target and returns a Nx3 matrix of coordinates of a path spline"""
 
         # For now we will just return a straight line with a 0.2m margin for overshoot
-        return np.vstack((origin, target + 0.2*np.linalg.norm(target-origin)))
+        return np.vstack((origin, target + 0.2*(target-origin)/np.linalg.norm(target-origin)))
+    
+    def follow_path(self, path, transform=True):
+        """
+        Takes a Nx3 matrix of node locations and follows the path between them.
+        Will transform the path to equal distance targets between the nodes for
+        more accurate path tracking if transform is enabled.
+        """
+
+        if transform:
+            self.path = transform_path(self.drone.s[0:3], path)
+        else:
+            self.path = path
+        self.current_path_node = 0
+        self.path_finished = False
+    
+def transform_path(init, path):
+    """
+    Transforms a Nx3 matrix of node locations to a path of equally distanced locations
+    between the node locations. Returns a Mx3 matrix.
+    """
+
+    path_out = np.empty((0, 3))
+    
+    step = 0.1
+    for (p0, p1) in zip(np.append(init[None, :], path[:-1], axis=0), path):
+        distance = np.linalg.norm(p1-p0)  
+        direction = (p1-p0)/distance
+        steps = int(np.floor(distance/step))+1
+
+        path_out = np.append(path_out, np.linspace(0, steps*step, num=steps)[:, None]*direction + p0, axis=0)
+    
+    return path_out
+
+
+
+
+

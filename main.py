@@ -74,8 +74,8 @@ def update(frame):
             an.set_3d_properties(np.asarray([start[2], start[2]]))
 
     # plot the current setpoint
-    anim[6].set_data(controller.target[0], controller.target[1])
-    anim[6].set_3d_properties(controller.target[2])
+    anim[6].set_data(controller.internal_target[0], controller.internal_target[1])
+    anim[6].set_3d_properties(controller.internal_target[2])
 
     # plot the entire path
     anim[7].set_data(controller.path[:, 0], controller.path[:, 1])
@@ -132,7 +132,7 @@ thrust3 = ax.plot([0,0], [0,0], [0,0], 'b-')
 thrust4 = ax.plot([0,0], [0,0], [0,0], 'b-')
 
 #Target Location
-target_location = ax.plot(controller.target[0], controller.target[1], controller.target[2], 'go')
+target_location = ax.plot(controller.internal_target[0], controller.internal_target[1], controller.internal_target[2], 'go')
 # path plot
 path_plot = ax.plot(
     controller.path[0,:], controller.path[1, :], controller.path[2, :], 'm:')

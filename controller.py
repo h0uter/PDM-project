@@ -6,9 +6,10 @@ import random
 class Controller:
     def __init__(self, drone):
         self.drone = drone
-        self.command_vector = [200, 250, 120, 250]
+        self.command_vector = [200, 200, 200, 200]
 
         # TODO: merge target orientation and position
+        self.internal_target = np.array([0, 5, 2.5]) # x, y, z
         self.target = np.array([0, 5, 2.5]) # x, y, z
         self.target_orientation = np.array([0, 0, 0])
 
@@ -21,11 +22,11 @@ class Controller:
 
         # Position -> Angle PID
         self.Kp = 0.25
-        self.Kd = 0.2
+        self.Kd = 0.1
 
         # Angle -> Thrust Delta PID
-        self.Kp_a = 2.0
-        self.Kd_a = 1.0
+        self.Kp_a = 5.0
+        self.Kd_a = 0.3
 
         # Yaw Angle -> Thrust Delta PID
         self.Kp_ya = 2#0.2
@@ -40,12 +41,15 @@ class Controller:
         self.MAX_ROT = np.pi/8 # rad
         self.MAX_D_POS_ERROR = 10 # m/s
         self.MAX_D_ORIENT_ERROR = np.pi/5 # rad/s
-        self.TARGET_REACHED_THRESHOLD = 0.4 # m
+        self.TARGET_REACHED_THRESHOLD = 0.2 # m
+        self.VEL_ONLY_DERIVATIVE = True
+        self.CHASE_DISTANCE = 0.5 # m
 
         # Path following
         self.path = None
         self.current_path_node = 0
         self.path_finished = False
+        self.chase = False
 
     def update(self):
 
@@ -55,12 +59,11 @@ class Controller:
 
         state = self.drone.eye_of_god()
 
-        #print('x, y, z: ', state[0:3])
-
         """OUTER LOOP PITCH & ROLL POSITION CONTROLLER"""
         # x
         # y
         # by feeding into roll and pitch
+        pos = state[0:3]
 
         # rotation matrix to transform global pos error into local pos error
         yaw = state[5]
@@ -68,15 +71,25 @@ class Controller:
         rot = np.linalg.inv(np.array([[np.cos(yaw), -np.sin(yaw), 0],
                         [np.sin(yaw), np.cos(yaw), 0], [0, 0, 1]]))
 
+        if self.chase:
+            self.internal_target = self.chase_target(pos, self.target, self.path[self.current_path_node-1, :])
+        else:
+            self.internal_target = self.target
+
         # world to body conversion of error
-        global_pos_error = self.target - state[0:3]
+        global_pos_error = self.internal_target - pos
         
         local_pos_error = rot@global_pos_error
         #print("global_pos_error:", global_pos_error, " local pos error: ", local_pos_error)
 
-        d_local_pos_error = np.maximum(np.minimum((local_pos_error - self.prev_local_pos_error)/self.dt, self.MAX_D_POS_ERROR), -self.MAX_D_POS_ERROR)
+        if self.VEL_ONLY_DERIVATIVE:
+            d_local_pos_error = -state[6:9]
+        else:
+            d_local_pos_error = (local_pos_error - self.prev_local_pos_error)/self.dt
 
-        if self.new_target:
+        d_local_pos_error = np.maximum(np.minimum(d_local_pos_error, self.MAX_D_POS_ERROR), -self.MAX_D_POS_ERROR)
+
+        if not self.VEL_ONLY_DERIVATIVE and self.new_target:
             d_local_pos_error = np.zeros((3))
 
         angle_reference = self.Kp * \
@@ -114,6 +127,8 @@ class Controller:
         
         if self.new_target:
             d_orientation_error = np.zeros((3))
+        
+        #print("Roll: P action", self.Kp_a*orientation_error[0], "D action", self.Kd_a*d_orientation_error[0])
 
         d_orientation = self.Kp_a*orientation_error[0:2] + self.Kd_a*d_orientation_error[0:2]
         d_orientation = np.append(d_orientation, self.Kp_ya*orientation_error[2] + self.Kd_ya*d_orientation_error[2])
@@ -160,7 +175,7 @@ class Controller:
 
         # This will switch to the next location when within the threshold
         # If no path is set this will set random locations.
-        if sum(abs(global_pos_error)) < self.TARGET_REACHED_THRESHOLD:
+        if sum(abs(self.target - pos)) < self.TARGET_REACHED_THRESHOLD:
             if self.path is not None:
                 if self.current_path_node < len(self.path[:, 0]) - 1:
                     self.current_path_node += 1
@@ -175,6 +190,7 @@ class Controller:
 
 
     def set_target(self, pos):
+        """Sets a new target position for the controller to reach"""
         self.target = pos
         self.new_target = True
 
@@ -187,21 +203,47 @@ class Controller:
         # For now we will just return a straight line with a 0.2m margin for overshoot
         return np.vstack((origin, target + 0.2*(target-origin)/np.linalg.norm(target-origin)))
     
-    def follow_path(self, path, transform=True):
+    def follow_path(self, path, control_mode=2):
         """
         Takes a Nx3 matrix of node locations and follows the path between them.
+
         Will transform the path to equal distance targets between the nodes for
-        more accurate path tracking if transform is enabled.
+        more accurate path tracking if control_mode is 1.
+
+        Will enable chase mode when control_mode is 2.
         """
 
-        if transform:
-            self.path = transform_path(self.drone.s[0:3], path)
+        # Add initial location
+        path = np.append(self.drone.eye_of_god()[None, 0:3], path, axis=0)
+
+        if control_mode == 1:
+            self.path = transform_path(path)
         else:
             self.path = path
-        self.current_path_node = 0
+            if control_mode == 2:
+                self.chase = True
+        self.current_path_node = 1
         self.path_finished = False
     
-def transform_path(init, path):
+    def chase_target(self, pos, target, previous=None):
+
+        if previous is not None:
+            curr = pos-previous
+            line = target-previous
+
+            line_norm = np.linalg.norm(line)
+
+            scalar_projection = np.dot(curr, line) / line_norm**2
+
+            return min((self.CHASE_DISTANCE/line_norm) + scalar_projection, 1)*line + previous
+        else:
+            distance = np.linalg.norm(target-pos)  
+            direction = (target-pos)/distance
+
+            return min(self.TARGET_REACHED_THRESHOLD, distance)*direction + pos
+
+    
+def transform_path(path):
     """
     Transforms a Nx3 matrix of node locations to a path of equally distanced locations
     between the node locations. Returns a Mx3 matrix.
@@ -210,7 +252,7 @@ def transform_path(init, path):
     path_out = np.empty((0, 3))
     
     step = 0.1
-    for (p0, p1) in zip(np.append(init[None, :], path[:-1], axis=0), path):
+    for (p0, p1) in zip(path[0:-1], path[1:]):
         distance = np.linalg.norm(p1-p0)  
         direction = (p1-p0)/distance
         steps = int(np.floor(distance/step))+1

@@ -38,7 +38,7 @@ def update(frame):
     drone.set_motor_commands([150, 150, 150, 150])
     drone.update()
     drone_hitbox.update(drone.s)
-    test_collision_line = [np.array([0,0,0]),np.array([2,2,2])] # collision line for debugging purposes
+    test_collision_line = [np.array([0,0,0]),np.array([4,5,2])] # collision line for debugging purposes
     print(collision_detector.check_collision(drone_hitbox, sphere_array, prism_array, beam_array, test_collision_line))
     if collision_detector.sphere_collision_point:
         x = collision_detector.sphere_collision_point[0]
@@ -46,7 +46,7 @@ def update(frame):
         z = collision_detector.sphere_collision_point[2]
         ax.plot(x, y, z, 'bo')
         print(collision_detector.sphere_collision_point)
-        a
+        a # a hard stop for debugging
         collision_detector.sphere_collision_point = []
 
     elif collision_detector.polygon_collision_point:
@@ -55,7 +55,7 @@ def update(frame):
         z = collision_detector.polygon_collision_point[2]
         ax.plot(x, y, z, 'bo')
         print(collision_detector.polygon_collision_point)
-        a
+        a # a hard stop for debugging
         collision_detector.polygon_collision_point = []
 
 

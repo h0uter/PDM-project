@@ -21,7 +21,8 @@ class CollisionDetector:
 
     def check_collision(self, dronehitbox, spheres, prism_array, beam_array, drone_vector_points):
         collision = False
-        self.drone_vector.append((drone_vector_points[1] - drone_vector_points[0]) / np.linalg.norm((drone_vector_points[1] - drone_vector_points[0]))) # normalized direction of vector
+        self.drone_vector.append((drone_vector_points[1] - drone_vector_points[0]) /
+        np.linalg.norm((drone_vector_points[1] - drone_vector_points[0]))) # normalized direction vector
         self.drone_vector.append(drone_vector_points[0]) # origin of vector
         self.drone_vector.append(np.linalg.norm((drone_vector_points[1] - drone_vector_points[0]))) # magnitude of direction vector
 
@@ -53,12 +54,12 @@ class CollisionDetector:
 
                 center_to_line_sq   = abs((d_center ** 2) - np.linalg.norm(origin_to_center)**2) # smallest distance from center to line squared
 
-                r_sq                = (sphere.r) ** 2
-                #sphere.r + dronehitbox.r + self.safety_margin
+                r_sq                = (sphere.r + dronehitbox.r + self.safety_margin) ** 2
+
                 if center_to_line_sq > r_sq: continue
 
                 center_to_intsect   = math.sqrt(r_sq - center_to_line_sq)
-                t_point           = d_center - center_to_intsect # t of first intersection point
+                t_point             = d_center - center_to_intsect # t of first intersection point
 
                 if t_point < 1*self.drone_vector[2]:
                     self.sphere_collision_point = (self.drone_vector[1] + self.drone_vector[0] * t_point).tolist()
@@ -91,6 +92,7 @@ class CollisionDetector:
 
     def polygon_collision_detector(self, dronehitbox, polygons):
         polygon_collision = False
+
         if polygons == []:
             pass
 
@@ -101,104 +103,36 @@ class CollisionDetector:
 
                 norm_of_normal = normal_plane / np.linalg.norm(normal_plane)
 
-                D_plane = -normal_plane[0] * polygon.xpoints[0] - normal_plane[1] * polygon.ypoints[0] - normal_plane[2] * polygon.zpoints[0]
-
                 # check if drone vector and polygon are parallel
                 line_on_normal = np.dot(normal_plane, self.drone_vector[0])
                 if np.isclose(abs(line_on_normal), 0): continue
 
+                d = np.dot(normal_plane, polygon.points[0])
 
-                if distance_to_plane > dronehitbox.r:
-                    continue
+                t = (np.dot(normal_plane, self.drone_vector[1]) + d) / line_on_normal
+                if t < 0 or t > 1*self.drone_vector[2]: continue
 
-                elif self.polygon_surface_collision(dronehitbox, polygon, edges, normal_plane):
-                    t = np.dot((polygon.points[0] - dronehitbox.s), normal_plane) / (np.linalg.norm(normal_plane))**2
+                elif self.polygon_surface_collision(dronehitbox, polygon, edges, normal_plane, t):
 
-                    self.polygon_collision_point = (dronehitbox.s + t * (normal_plane)).tolist()
+                    self.polygon_collision_point = (self.drone_vector[1] + self.drone_vector[0] * t).tolist()
                     print("surface")
                     return True
 
-                """
-                elif self.polygon_edges_collision(dronehitbox, polygon, edges):
-                    self.polygon_collision_point = (dronehitbox.s - distance_to_plane * norm_of_normal).tolist()
-                    print('edge')
-                    return True
-                """
-
         return polygon_collision
 
-    def polygon_edges_collision(self, dronehitbox, polygon, edges):
-        edges_collision = False
-        for j, edge in enumerate(edges):
-            # calculating vector between hitbox and vertix of the polygon edge
-            circle_vector_x = dronehitbox.s[0] - polygon.xpoints[j]
-            circle_vector_y = dronehitbox.s[1] - polygon.ypoints[j]
-            circle_vector_z = dronehitbox.s[2] - polygon.zpoints[j]
-            circle_vector = [circle_vector_x, circle_vector_y, circle_vector_z]
-
-            len_edge = np.linalg.norm(np.asarray(edge))
-            norm_edge = np.asarray(edge) / len_edge
-
-            # projecting the circle vector onto the edge
-            dot_product = np.dot(np.asarray(circle_vector), norm_edge)
-
-            if dot_product <= 0: # dronehitbox is closest to start of vector
-                distance_vector = [polygon.xpoints[j], polygon.ypoints[j], polygon.zpoints[j]]
-
-            elif dot_product >= len_edge: # dronehitbox is closest to end of vector
-                distance_vector = [polygon.xpoints[j-1], polygon.ypoints[j-1], polygon.zpoints[j-1]]
-
-            else: # dronehitbox is in between
-                point_on_line = norm_edge * dot_product
-                distance_vector =   [point_on_line[0] + polygon.xpoints[j],
-                                     point_on_line[1] + polygon.ypoints[j],
-                                     point_on_line[2] + polygon.zpoints[j]]
-
-            if np.linalg.norm(dronehitbox.s - distance_vector) < dronehitbox.r:
-                return True
-
-        return edges_collision
-
-    def polygon_surface_collision(self, dronehitbox, polygon, edges, normal_plane):
+    def polygon_surface_collision(self, dronehitbox, polygon, edges, normal_plane, t):
         inside_polygon = False
 
         norm_of_normal = normal_plane / np.linalg.norm(normal_plane)
 
-        if self.point_inside_polygon(edges, normal_plane, polygon, norm_of_normal, dronehitbox):
+        if self.point_inside_polygon(edges, normal_plane, polygon, norm_of_normal, dronehitbox, t):
             return True
 
         return inside_polygon
 
-    # previous solution for surface collision checking
-    def poi_inside_polygon(self, edges, normal_plane, polygon, norm_of_normal, dronehitbox):
-            # projecting circle centre point to polygon plane
-            X_of_plane = edges[0] / np.linalg.norm(normal_plane)
-            Y_of_plane = np.cross(normal_plane, edges[0]) / np.linalg.norm(np.cross(normal_plane, edges[0]))
+    def point_inside_polygon(self, edges, normal_plane, polygon, norm_of_normal, dronehitbox, t):
 
-            projected_drone_center = [np.dot(np.asarray(dronehitbox.s), X_of_plane), np.dot(np.asarray(dronehitbox.s), Y_of_plane)]
-            projected_polygon_points =  [[np.dot((polygon.points[0]), X_of_plane), np.dot((polygon.points[0]), Y_of_plane)],
-                                         [np.dot((polygon.points[1]), X_of_plane), np.dot((polygon.points[1]), Y_of_plane)],
-                                         [np.dot((polygon.points[2]), X_of_plane), np.dot((polygon.points[2]), Y_of_plane)]]
-
-            total_area = self.triangle_area(projected_polygon_points[0], projected_polygon_points[1], projected_polygon_points[2])
-            area1 = self.triangle_area(projected_drone_center, projected_polygon_points[0], projected_polygon_points[1])
-            area2 = self.triangle_area(projected_drone_center, projected_polygon_points[1], projected_polygon_points[2])
-            area3 = self.triangle_area(projected_drone_center, projected_polygon_points[0], projected_polygon_points[2])
-
-            if (area1 + area2 + area3) > total_area:
-                return False
-
-            else:
-                return True
-
-    def point_inside_polygon(self, edges, normal_plane, polygon, norm_of_normal, dronehitbox):
-
-        #projection of point onto polygon plane
-        t = np.dot((polygon.points[0] - dronehitbox.s), normal_plane) / (np.linalg.norm(normal_plane))**2
-
-        collision_point = dronehitbox.s + t * (normal_plane)
-
-
+        collision_point = self.drone_vector[1] + self.drone_vector[0] * t
 
         # edge 0
         vp0 = collision_point - polygon.points[0]
@@ -218,9 +152,3 @@ class CollisionDetector:
 
 
         return True
-
-    def triangle_area(self, p1, p2, p3):
-        # uses 1/2 determinant method to calculate area of triangle
-        det = ((p1[0] - p3[0]) * (p2[1] - p3[1])) - ((p2[0] - p3[0]) * (p1[1] - p3[1]))
-
-        return (0.5 * det)

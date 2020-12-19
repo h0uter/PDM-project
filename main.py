@@ -73,8 +73,13 @@ def update(frame):
             an.set_data(np.asarray([start[0], start[0]]), np.asarray([start[1], start[1]]))
             an.set_3d_properties(np.asarray([start[2], start[2]]))
 
-    anim[-1].set_data(controller.target[0], controller.target[1])
-    anim[-1].set_3d_properties(controller.target[2])
+    # plot the current setpoint
+    anim[6].set_data(controller.target[0], controller.target[1])
+    anim[6].set_3d_properties(controller.target[2])
+
+    # plot the entire path
+    anim[7].set_data(controller.path[:, 0], controller.path[:, 1])
+    anim[7].set_3d_properties(controller.path[:, 2])
 
 
     return anim
@@ -128,8 +133,13 @@ thrust4 = ax.plot([0,0], [0,0], [0,0], 'b-')
 
 #Target Location
 target_location = ax.plot(controller.target[0], controller.target[1], controller.target[2], 'go')
+# path plot
+path_plot = ax.plot(
+    controller.path[0,:], controller.path[1, :], controller.path[2, :], 'm:')
 
-anim = motor_locations + frame + thrust1 + thrust2 + thrust3 + thrust4 + target_location
+
+# index anim as an array
+anim = motor_locations + frame + thrust1 + thrust2 + thrust3 + thrust4 + target_location + path_plot
 ani = animation.FuncAnimation(fig, update, interval = dt**1000, blit=False)
 
 plt.show()

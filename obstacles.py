@@ -3,9 +3,13 @@ import matplotlib.pyplot as plt
 
 class Sphere:
 
-    def __init__(self, r, pos):
+    def __init__(self, r, pos, dronehitbox_r, safety_margin):
         self.r = r #radius of sphere
         self.pos = pos #position of sphere (x, y, z)
+        self.dronehitbox_r  = dronehitbox_r
+        self.safety_margin  = safety_margin
+        self.colobject_func = [0, 0, 0]
+        self.setcolobject_sphere()
 
     def create_sphere(self):
         u, v = np.mgrid[0:2*np.pi:20j, 0:np.pi:10j]
@@ -16,18 +20,30 @@ class Sphere:
 
         return x, y, z
 
+    def setcolobject_sphere(self):
+
+        self.r = self.r + self.dronehitbox_r + self.safety_margin
+
+        u, v = np.mgrid[0:2*np.pi:20j, 0:np.pi:10j]
+
+        self.colobject_func[0] = self.r * np.cos(u) * np.sin(v) + self.pos[0]
+        self.colobject_func[1] = self.r * np.sin(u) * np.sin(v) + self.pos[1]
+        self.colobject_func[2] = self.r * np.cos(v) + self.pos[2]
+
 class SphereManager:
 
-    def __init__(self, n_spheres, pos_array, r_array):
-        self.n_spheres = n_spheres
-        self.pos_array = pos_array
-        self.r_array   = r_array
+    def __init__(self, n_spheres, pos_array, r_array, dronehitbox_r, safety_margin):
+        self.n_spheres      = n_spheres
+        self.pos_array      = pos_array
+        self.r_array        = r_array
+        self.dronehitbox_r  = dronehitbox_r
+        self.safety_margin  = safety_margin
 
     def create_spheres(self):
         sphere_array = []
 
         for i in range(self.n_spheres):
-            sphere_array.append(Sphere(self.r_array[i], self.pos_array[i]))
+            sphere_array.append(Sphere(self.r_array[i], self.pos_array[i], self.dronehitbox_r, self.safety_margin))
 
         return sphere_array
 

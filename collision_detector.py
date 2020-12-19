@@ -1,5 +1,6 @@
 import numpy as np
 import time
+import math
 
 class DroneHitbox:
 
@@ -12,22 +13,27 @@ class DroneHitbox:
 
 class CollisionDetector:
 
-    def __init__(self):
-        self.sphere_collision_point = []
+    def __init__(self, safety_margin):
+        self.sphere_collision_points = []
         self.polygon_collision_point = []
+        self.safety_margin = safety_margin
+        self.drone_vector = [] # list containing direction and origin of drone vector respectively
 
-    def check_collision(self, dronehitbox, spheres, prism_array, beam_array):
+    def check_collision(self, dronehitbox, spheres, prism_array, beam_array, drone_vector_points):
         collision = False
+        self.drone_vector.append((drone_vector_points[1] - drone_vector_points[0]) / np.linalg.norm((drone_vector_points[1] - drone_vector_points[0]))) # direction of vector
+        self.drone_vector.append(drone_vector_points[0]) # origin of vector
+
         detection_radius = 4
         time1 = time.perf_counter()
         if self.sphere_collision_detector(dronehitbox, spheres) or self.figure_collision_detector(dronehitbox, detection_radius, prism_array, beam_array):
-            time2 = time.perf_counter()
-            time_taken = time2 - time1
+            time2       = time.perf_counter()
+            time_taken  = time2 - time1
             print(f"Detecting collsions took {time_taken} seconds.")
             return True
 
-        time2 = time.perf_counter()
-        time_taken = time2 - time1
+        time2       = time.perf_counter()
+        time_taken  = time2 - time1
         print(f"Detecting collsions took {time_taken} seconds.")
         return collision
 
@@ -38,16 +44,24 @@ class CollisionDetector:
         else:
             for sphere in spheres:
 
-                if np.linalg.norm(dronehitbox.s - sphere.pos) < (dronehitbox.r + sphere.r): # checks for collision using euclidian distance
-                    delta = sphere.pos - dronehitbox.s
-                    if sphere.r < dronehitbox.r:
-                        ratio = (sphere.r/dronehitbox.r)
+                origin_to_center    = sphere.pos - self.drone_vector[1] # distance from origin drone vector to center sphere
+                d_center            = np.dot(origin_to_center, self.drone_vector[0]) # distance from center projected to drone vector
+                if d_center < 0: continue
 
-                    else:
-                        ratio = (dronehitbox.r/sphere.r)
+                center_to_line_sq   = abs((d_center ** 2) - np.linalg.norm(origin_to_center)**2) # smallest distance from center to line squared
 
-                    self.sphere_collision_point = (ratio * delta + dronehitbox.s).tolist()
-                    return True
+                r_sq                = (sphere.r) ** 2
+                #sphere.r + dronehitbox.r + self.safety_margin
+                if center_to_line_sq > r_sq: continue
+
+                center_to_intsect   = math.sqrt(r_sq - center_to_line_sq)
+                t_point1            = d_center - center_to_intsect # t of intersection point 1
+                t_point2            = d_center + center_to_intsect # t of intersection point 2
+
+                self.sphere_collision_points.append(self.drone_vector[1] + self.drone_vector[0] * t_point1)
+                self.sphere_collision_points.append(self.drone_vector[1] + self.drone_vector[0] * t_point2)
+
+                return True
 
         return sphere_collision
 
@@ -58,7 +72,7 @@ class CollisionDetector:
         else:
             for prism in prism_array:
                 if np.linalg.norm(dronehitbox.s - prism.center) < detection_radius:
-                    if self.polygon_collision_detector(dronehitbox, prism.polygons_array):
+                    if self.polygon_collision_detector(dronehitbox, prism.polygons_col_array):
                         return True
 
         if beam_array == []:
@@ -67,7 +81,7 @@ class CollisionDetector:
         else:
             for beam in beam_array:
                 if np.linalg.norm(dronehitbox.s - beam.center) < detection_radius:
-                    if self.polygon_collision_detector(dronehitbox, beam.polygons_array):
+                    if self.polygon_collision_detector(dronehitbox, beam.polygons_col_array):
                         return True
 
         return False
@@ -89,7 +103,7 @@ class CollisionDetector:
 
                 distance_to_plane = abs(normal_plane[0] * dronehitbox.s[0] + normal_plane[1] * dronehitbox.s[1] + normal_plane[2] * dronehitbox.s[2] + D_plane) / np.linalg.norm(normal_plane)
                 if distance_to_plane > dronehitbox.r:
-                    polygon_collision = False
+                    continue
 
                 elif self.polygon_surface_collision(dronehitbox, polygon, edges, normal_plane):
                     t = np.dot((polygon.points[0] - dronehitbox.s), normal_plane) / (np.linalg.norm(normal_plane))**2
@@ -97,6 +111,7 @@ class CollisionDetector:
                     self.polygon_collision_point = (dronehitbox.s + t * (normal_plane)).tolist()
                     print("surface")
                     return True
+
                 """
                 elif self.polygon_edges_collision(dronehitbox, polygon, edges):
                     self.polygon_collision_point = (dronehitbox.s - distance_to_plane * norm_of_normal).tolist()

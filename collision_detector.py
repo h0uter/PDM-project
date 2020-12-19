@@ -14,15 +14,16 @@ class DroneHitbox:
 class CollisionDetector:
 
     def __init__(self, safety_margin):
-        self.sphere_collision_points = []
+        self.sphere_collision_point = []
         self.polygon_collision_point = []
         self.safety_margin = safety_margin
         self.drone_vector = [] # list containing direction and origin of drone vector respectively
 
     def check_collision(self, dronehitbox, spheres, prism_array, beam_array, drone_vector_points):
         collision = False
-        self.drone_vector.append((drone_vector_points[1] - drone_vector_points[0]) / np.linalg.norm((drone_vector_points[1] - drone_vector_points[0]))) # direction of vector
+        self.drone_vector.append((drone_vector_points[1] - drone_vector_points[0]) / np.linalg.norm((drone_vector_points[1] - drone_vector_points[0]))) # normalized direction of vector
         self.drone_vector.append(drone_vector_points[0]) # origin of vector
+        self.drone_vector.append(np.linalg.norm((drone_vector_points[1] - drone_vector_points[0]))) # magnitude of direction vector
 
         detection_radius = 4
         time1 = time.perf_counter()
@@ -30,11 +31,13 @@ class CollisionDetector:
             time2       = time.perf_counter()
             time_taken  = time2 - time1
             print(f"Detecting collsions took {time_taken} seconds.")
+            self.drone_vector = []
             return True
 
         time2       = time.perf_counter()
         time_taken  = time2 - time1
         print(f"Detecting collsions took {time_taken} seconds.")
+        self.drone_vector = []
         return collision
 
     def sphere_collision_detector(self, dronehitbox, spheres):
@@ -55,11 +58,10 @@ class CollisionDetector:
                 if center_to_line_sq > r_sq: continue
 
                 center_to_intsect   = math.sqrt(r_sq - center_to_line_sq)
-                t_point1            = d_center - center_to_intsect # t of intersection point 1
-                t_point2            = d_center + center_to_intsect # t of intersection point 2
+                t_point           = d_center - center_to_intsect # t of first intersection point
 
-                self.sphere_collision_points.append(self.drone_vector[1] + self.drone_vector[0] * t_point1)
-                self.sphere_collision_points.append(self.drone_vector[1] + self.drone_vector[0] * t_point2)
+                if t_point < 1*self.drone_vector[2]:
+                    self.sphere_collision_point = (self.drone_vector[1] + self.drone_vector[0] * t_point).tolist()
 
                 return True
 
@@ -101,7 +103,11 @@ class CollisionDetector:
 
                 D_plane = -normal_plane[0] * polygon.xpoints[0] - normal_plane[1] * polygon.ypoints[0] - normal_plane[2] * polygon.zpoints[0]
 
-                distance_to_plane = abs(normal_plane[0] * dronehitbox.s[0] + normal_plane[1] * dronehitbox.s[1] + normal_plane[2] * dronehitbox.s[2] + D_plane) / np.linalg.norm(normal_plane)
+                # check if drone vector and polygon are parallel
+                line_on_normal = np.dot(normal_plane, self.drone_vector[0])
+                if np.isclose(abs(line_on_normal), 0): continue
+
+
                 if distance_to_plane > dronehitbox.r:
                     continue
 
@@ -192,24 +198,24 @@ class CollisionDetector:
 
         collision_point = dronehitbox.s + t * (normal_plane)
 
+
+
         # edge 0
         vp0 = collision_point - polygon.points[0]
-        C = np.cross(edges[0], vp0)
-        if np.dot(normal_plane, C) < -1:
-            return False
+        C = np.cross(edges[0], vp0) / np.linalg.norm(np.cross(edges[0], vp0))
+        if np.dot(normal_plane, C) < 0: return False
 
         # edge 1
         vp1 = collision_point - polygon.points[1]
-        C = np.cross(edges[1], vp1)
-        if np.dot(normal_plane, C) < -1:
-            return False
+        C = np.cross(edges[1], vp1) / np.linalg.norm(np.cross(edges[1], vp1))
+        if np.dot(normal_plane, C) < 0: return False
 
         # edge 2
         vp2 = collision_point - polygon.points[2]
         edge_2 = polygon.points[0] - polygon.points[2]
-        C = np.cross(edge_2, vp2)
-        if np.dot(normal_plane, C) < -1:
-            return False
+        C = np.cross(edge_2, vp2) / np.linalg.norm(np.cross(edges[2], vp2))
+        if np.dot(normal_plane, C) < 0: return False
+
 
         return True
 

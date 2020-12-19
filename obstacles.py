@@ -189,6 +189,7 @@ class Beam:
         self.polygons_array = []
         self.polygons_col_array = []
         self.set_points()
+        self.set_colobject_points()
 
     def set_points(self):
         point1 = [self.center[0] - 0.5 * self.w,   self.center[1] - 0.5 * self.l,     self.center[2] - 0.5 * self.h]

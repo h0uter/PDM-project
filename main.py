@@ -38,21 +38,16 @@ def update(frame):
     drone.set_motor_commands([150, 150, 150, 150])
     drone.update()
     drone_hitbox.update(drone.s)
-    test_collision_line = [np.array([0,0,1]),np.array([0,0,3])] # collision line for debugging purposes
+    test_collision_line = [np.array([0,0,0]),np.array([2,2,2])] # collision line for debugging purposes
     print(collision_detector.check_collision(drone_hitbox, sphere_array, prism_array, beam_array, test_collision_line))
-    if collision_detector.sphere_collision_points:
-        x1 = collision_detector.sphere_collision_points[0][0]
-        y1 = collision_detector.sphere_collision_points[0][1]
-        z1 = collision_detector.sphere_collision_points[0][2]
-
-        x2 = collision_detector.sphere_collision_points[1][0]
-        y2 = collision_detector.sphere_collision_points[1][1]
-        z2 = collision_detector.sphere_collision_points[1][2]
-        ax.plot(x1, y1, z1, 'bo')
-        ax.plot(x2, y2, z2, 'bo')
-        print(collision_detector.sphere_collision_points)
+    if collision_detector.sphere_collision_point:
+        x = collision_detector.sphere_collision_point[0]
+        y = collision_detector.sphere_collision_point[1]
+        z = collision_detector.sphere_collision_point[2]
+        ax.plot(x, y, z, 'bo')
+        print(collision_detector.sphere_collision_point)
         a
-        collision_detector.sphere_collision_points = []
+        collision_detector.sphere_collision_point = []
 
     elif collision_detector.polygon_collision_point:
         x = collision_detector.polygon_collision_point[0]

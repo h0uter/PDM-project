@@ -2,7 +2,7 @@ spheres_r = []
 spheres_r.append(0.5)
 
 spheres_pos = []
-spheres_pos.append([0, 0, 2])
+spheres_pos.append([2, 2, 3])
 n_spheres = 1
 
 prisms = []

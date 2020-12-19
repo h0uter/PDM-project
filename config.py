@@ -6,14 +6,14 @@ spheres_pos.append([2, 2, 3])
 n_spheres = 0
 
 prisms = []
-prisms.append([1, 3, 2]) #prism width, length, height
+prisms.append([1, 3, 2, [0,0,0]]) #prism width, length, height, rotation x, y, z in degrees
 
 prisms_pos = []
-prisms_pos.append([4, 2.5, 3])
-n_prisms = 0
+prisms_pos.append([2.5, 2.5, 4])
+n_prisms = 1
 
 beams = []
-beams.append([1, 3, 2]) #prism width, length, height
+beams.append([1, 3, 2, [0,0,0]]) #prism width, length, height, rotation x, y, z in degrees
 
 beams_pos = []
 #beams_pos.append([1, 1, 3])

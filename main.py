@@ -38,7 +38,7 @@ def update(frame):
     drone.set_motor_commands([150, 150, 150, 150])
     drone.update()
     drone_hitbox.update(drone.s)
-    test_collision_line = [np.array([0,0,0]),np.array([4,5,2])] # collision line for debugging purposes
+    test_collision_line = [np.array([2.5,2.5,0]),np.array([2.5,2.5,4])] # collision line for debugging purposes
     print(collision_detector.check_collision(drone_hitbox, sphere_array, prism_array, beam_array, test_collision_line))
     if collision_detector.sphere_collision_point:
         x = collision_detector.sphere_collision_point[0]
@@ -146,7 +146,6 @@ beam_array = beam_manager.create_beams()
 
 #initialise collision detector
 collision_detector = CollisionDetector(cfg.safety_margin)
-#edges = polygon_manager.get_edges(polygon_array)
 
 #plot spheres
 for sphere in sphere_array:

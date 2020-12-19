@@ -1,5 +1,6 @@
 import numpy as np
 import matplotlib.pyplot as plt
+from pyquaternion import Quaternion as Quat
 
 class Sphere:
 
@@ -100,28 +101,47 @@ class PolygonManager:
 
 class Prism:
 
-    def __init__(self, width, length, height, pos, dronehitbox_r, safety_margin):
+    def __init__(self, width, length, height, pos, dronehitbox_r, safety_margin, rotation):
         self.h = height
         self.l = length
         self.w = width
         self.center = pos
         self.dronehitbox_r = dronehitbox_r
         self.safety_margin = safety_margin
+        self.rotation = rotation
         self.polygons_array = []
         self.polygons_col_array = []
+        self.rotation_matrix = self.get_rotation_matrix()
         self.set_points()
         self.set_colobject_points()
 
+    def get_rotation_matrix(self):
+
+        q1 = Quat(axis=[1, 0, 0], degrees=self.rotation[0])
+        q2 = Quat(axis=[0, 1, 0], degrees=self.rotation[1])
+        q3 = Quat(axis=[0, 0, 1], degrees=self.rotation[2])
+
+        q = q3*q2*q1
+
+        return q.rotation_matrix
+
     def set_points(self):
-        point1 = [self.center[0] - 0.5 * self.w,   self.center[1] - 0.5 * self.l,     self.center[2] - 0.5 * self.h]
-        point2 = [self.center[0] + 0.5 * self.w,   self.center[1] - 0.5 * self.l,     self.center[2] - 0.5 * self.h]
-        point3 = [self.center[0] - 0.5 * self.w,   self.center[1] + 0.5 * self.l,     self.center[2] - 0.5 * self.h]
-        point4 = [self.center[0] + 0.5 * self.w,   self.center[1] + 0.5 * self.l,     self.center[2] - 0.5 * self.h]
-        point5 = [self.center[0]               ,   self.center[1] - 0.5 * self.l,     self.center[2] + 0.5 * self.h]
-        point6 = [self.center[0]               ,   self.center[1] + 0.5 * self.l,     self.center[2] + 0.5 * self.h]
+        point1 = [- 0.5 * self.w,   - 0.5 * self.l,     - 0.5 * self.h]
+        point2 = [+ 0.5 * self.w,   - 0.5 * self.l,     - 0.5 * self.h]
+        point3 = [- 0.5 * self.w,   + 0.5 * self.l,     - 0.5 * self.h]
+        point4 = [+ 0.5 * self.w,   + 0.5 * self.l,     - 0.5 * self.h]
+        point5 = [0             ,   - 0.5 * self.l,     + 0.5 * self.h]
+        point6 = [0             ,   + 0.5 * self.l,     + 0.5 * self.h]
 
         points = [point1, point2, point3, point4, point5, point6]
-        self.set_polygons(points, col=False)
+
+        rot_points = np.dot(points, self.rotation_matrix.T)
+
+        for i, point in enumerate(rot_points):
+            for j, coord in enumerate(point):
+                rot_points[i][j] = coord + self.center[j]
+
+        self.set_polygons(rot_points, col=False)
 
     def set_colobject_points(self):
 
@@ -129,15 +149,22 @@ class Prism:
         self.l = self.l + 2 * (self.dronehitbox_r + self.safety_margin)
         self.h = self.h + 2 * (self.dronehitbox_r + self.safety_margin)
 
-        point1 = [self.center[0] - 0.5 * self.w,   self.center[1] - 0.5 * self.l,     self.center[2] - 0.5 * self.h]
-        point2 = [self.center[0] + 0.5 * self.w,   self.center[1] - 0.5 * self.l,     self.center[2] - 0.5 * self.h]
-        point3 = [self.center[0] - 0.5 * self.w,   self.center[1] + 0.5 * self.l,     self.center[2] - 0.5 * self.h]
-        point4 = [self.center[0] + 0.5 * self.w,   self.center[1] + 0.5 * self.l,     self.center[2] - 0.5 * self.h]
-        point5 = [self.center[0]               ,   self.center[1] - 0.5 * self.l,     self.center[2] + 0.5 * self.h]
-        point6 = [self.center[0]               ,   self.center[1] + 0.5 * self.l,     self.center[2] + 0.5 * self.h]
+        point1 = [- 0.5 * self.w,   - 0.5 * self.l,     - 0.5 * self.h]
+        point2 = [+ 0.5 * self.w,   - 0.5 * self.l,     - 0.5 * self.h]
+        point3 = [- 0.5 * self.w,   + 0.5 * self.l,     - 0.5 * self.h]
+        point4 = [+ 0.5 * self.w,   + 0.5 * self.l,     - 0.5 * self.h]
+        point5 = [0             ,   - 0.5 * self.l,     + 0.5 * self.h]
+        point6 = [0             ,   + 0.5 * self.l,     + 0.5 * self.h]
 
         points = [point1, point2, point3, point4, point5, point6]
-        self.set_polygons(points, col=True)
+
+        rot_points = np.dot(points, self.rotation_matrix.T)
+
+        for i, point in enumerate(rot_points):
+            for j, coord in enumerate(point):
+                rot_points[i][j] = coord + self.center[j]
+
+        self.set_polygons(rot_points, col=True)
 
     def set_polygons(self, point, col):
 
@@ -151,7 +178,7 @@ class Prism:
         polygon8 = [point[0], point[1], point[4]]
 
         polygon_point_array     = [polygon1, polygon2, polygon3, polygon4, polygon5, polygon6, polygon7, polygon8]
-        #[polygon1, polygon2, polygon3, polygon4, polygon5, polygon6, polygon7, polygon8]
+
         if col == False:
             polygon_manager         = PolygonManager(len(polygon_point_array), polygon_point_array)
             self.polygons_array     = polygon_manager.create_polygons()
@@ -173,36 +200,55 @@ class PrismManager:
         prism_array = []
 
         for i in range(self.n_prisms):
-            prism_array.append(Prism(self.dimensions_array[i][0], self.dimensions_array[i][1], self.dimensions_array[i][2], self.pos_array[i], self.dronehitbox_r, self.safety_margin))
+            prism_array.append(Prism(self.dimensions_array[i][0], self.dimensions_array[i][1], self.dimensions_array[i][2], self.pos_array[i], self.dronehitbox_r, self.safety_margin, self.dimensions_array[i][3]))
 
         return prism_array
 
 class Beam:
 
-    def __init__(self, height, length, width, pos, dronehitbox_r, safety_margin):
+    def __init__(self, height, length, width, pos, dronehitbox_r, safety_margin, rotation):
         self.h = height
         self.l = length
         self.w = width
         self.center = pos
         self.dronehitbox_r = dronehitbox_r
         self.safety_margin = safety_margin
+        self.rotation = rotation
         self.polygons_array = []
         self.polygons_col_array = []
+        self.rotation_matrix = self.get_rotation_matrix()
         self.set_points()
         self.set_colobject_points()
 
+    def get_rotation_matrix(self):
+
+        q1 = Quat(axis=[1, 0, 0], degrees=self.rotation[0])
+        q2 = Quat(axis=[0, 1, 0], degrees=self.rotation[1])
+        q3 = Quat(axis=[0, 0, 1], degrees=self.rotation[2])
+
+        q = q3*q2*q1
+
+        return q.rotation_matrix
+
     def set_points(self):
-        point1 = [self.center[0] - 0.5 * self.w,   self.center[1] - 0.5 * self.l,     self.center[2] - 0.5 * self.h]
-        point2 = [self.center[0] + 0.5 * self.w,   self.center[1] - 0.5 * self.l,     self.center[2] - 0.5 * self.h]
-        point3 = [self.center[0] - 0.5 * self.w,   self.center[1] + 0.5 * self.l,     self.center[2] - 0.5 * self.h]
-        point4 = [self.center[0] + 0.5 * self.w,   self.center[1] + 0.5 * self.l,     self.center[2] - 0.5 * self.h]
-        point5 = [self.center[0] - 0.5 * self.w,   self.center[1] - 0.5 * self.l,     self.center[2] + 0.5 * self.h]
-        point6 = [self.center[0] + 0.5 * self.w,   self.center[1] - 0.5 * self.l,     self.center[2] + 0.5 * self.h]
-        point7 = [self.center[0] - 0.5 * self.w,   self.center[1] + 0.5 * self.l,     self.center[2] + 0.5 * self.h]
-        point8 = [self.center[0] + 0.5 * self.w,   self.center[1] + 0.5 * self.l,     self.center[2] + 0.5 * self.h]
+        point1 = np.array([- 0.5 * self.w,   - 0.5 * self.l,     - 0.5 * self.h])
+        point2 = np.array([+ 0.5 * self.w,   - 0.5 * self.l,     - 0.5 * self.h])
+        point3 = np.array([- 0.5 * self.w,   + 0.5 * self.l,     - 0.5 * self.h])
+        point4 = np.array([+ 0.5 * self.w,   + 0.5 * self.l,     - 0.5 * self.h])
+        point5 = np.array([- 0.5 * self.w,   - 0.5 * self.l,     + 0.5 * self.h])
+        point6 = np.array([+ 0.5 * self.w,   - 0.5 * self.l,     + 0.5 * self.h])
+        point7 = np.array([- 0.5 * self.w,   + 0.5 * self.l,     + 0.5 * self.h])
+        point8 = np.array([+ 0.5 * self.w,   + 0.5 * self.l,     + 0.5 * self.h])
 
         points = [point1, point2, point3, point4, point5, point6, point7, point8]
-        self.set_polygons(points, col=False)
+
+        rot_points = np.dot(points, self.rotation_matrix.T)
+
+        for i, point in enumerate(rot_points):
+            for j, coord in enumerate(point):
+                rot_points[i][j] = coord + self.center[j]
+
+        self.set_polygons(rot_points, col=False)
 
     def set_colobject_points(self):
 
@@ -210,17 +256,24 @@ class Beam:
         self.l = self.l + 2 * (self.dronehitbox_r + self.safety_margin)
         self.h = self.h + 2 * (self.dronehitbox_r + self.safety_margin)
 
-        point1 = [self.center[0] - 0.5 * self.w,   self.center[1] - 0.5 * self.l,     self.center[2] - 0.5 * self.h]
-        point2 = [self.center[0] + 0.5 * self.w,   self.center[1] - 0.5 * self.l,     self.center[2] - 0.5 * self.h]
-        point3 = [self.center[0] - 0.5 * self.w,   self.center[1] + 0.5 * self.l,     self.center[2] - 0.5 * self.h]
-        point4 = [self.center[0] + 0.5 * self.w,   self.center[1] + 0.5 * self.l,     self.center[2] - 0.5 * self.h]
-        point5 = [self.center[0] - 0.5 * self.w,   self.center[1] - 0.5 * self.l,     self.center[2] + 0.5 * self.h]
-        point6 = [self.center[0] + 0.5 * self.w,   self.center[1] - 0.5 * self.l,     self.center[2] + 0.5 * self.h]
-        point7 = [self.center[0] - 0.5 * self.w,   self.center[1] + 0.5 * self.l,     self.center[2] + 0.5 * self.h]
-        point8 = [self.center[0] + 0.5 * self.w,   self.center[1] + 0.5 * self.l,     self.center[2] + 0.5 * self.h]
+        point1 = np.array([- 0.5 * self.w,   - 0.5 * self.l,     - 0.5 * self.h])
+        point2 = np.array([+ 0.5 * self.w,   - 0.5 * self.l,     - 0.5 * self.h])
+        point3 = np.array([- 0.5 * self.w,   + 0.5 * self.l,     - 0.5 * self.h])
+        point4 = np.array([+ 0.5 * self.w,   + 0.5 * self.l,     - 0.5 * self.h])
+        point5 = np.array([- 0.5 * self.w,   - 0.5 * self.l,     + 0.5 * self.h])
+        point6 = np.array([+ 0.5 * self.w,   - 0.5 * self.l,     + 0.5 * self.h])
+        point7 = np.array([- 0.5 * self.w,   + 0.5 * self.l,     + 0.5 * self.h])
+        point8 = np.array([+ 0.5 * self.w,   + 0.5 * self.l,     + 0.5 * self.h])
 
         points = [point1, point2, point3, point4, point5, point6, point7, point8]
-        self.set_polygons(points, col=True)
+
+        rot_points = np.dot(points, self.rotation_matrix.T)
+
+        for i, point in enumerate(rot_points):
+            for j, coord in enumerate(point):
+                rot_points[i][j] = coord + self.center[j]
+
+        self.set_polygons(rot_points, col=True)
 
     def set_polygons(self, point, col):
 
@@ -238,7 +291,6 @@ class Beam:
         polygon12   = [point[4], point[5], point[1]]
 
         polygon_point_array     = [polygon1, polygon2, polygon3, polygon4, polygon5, polygon6, polygon7, polygon8, polygon9, polygon10, polygon11, polygon12]
-        #[polygon1, polygon2, polygon3, polygon4, polygon5, polygon6, polygon7, polygon8, polygon9, polygon10, polygon11, polygon12]
 
         if col == False:
             polygon_manager         = PolygonManager(len(polygon_point_array), polygon_point_array)
@@ -261,6 +313,6 @@ class BeamManager:
         beams_array = []
 
         for i in range(self.n_beams):
-            beams_array.append(Beam(self.dimensions_array[i][0], self.dimensions_array[i][1], self.dimensions_array[i][2], self.pos_array[i], self.dronehitbox_r, self.safety_margin))
+            beams_array.append(Beam(self.dimensions_array[i][0], self.dimensions_array[i][1], self.dimensions_array[i][2], self.pos_array[i], self.dronehitbox_r, self.safety_margin, self.dimensions_array[i][3]))
 
         return beams_array

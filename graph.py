@@ -1,7 +1,5 @@
 import numpy as np
 import matplotlib.pyplot as plt
-
-import matplotlib.pyplot as plt
 from mpl_toolkits.mplot3d import Axes3D
 
 class Graph:
@@ -23,9 +21,14 @@ class Graph:
     def get_graph(self):
         return self.graph
     
-    def plot_graph(self):
+    def plot_graph(self, domain):
         fig = plt.figure()
         ax = fig.add_subplot(111, projection='3d')
+
+        x_domain, y_domain, z_domain = domain
+        ax.set_zlim3d(x_domain)
+        ax.set_xlim3d(y_domain)
+        ax.set_ylim3d(z_domain)
 
         #plot nodes
         for _, node in self.graph.items():

@@ -57,13 +57,13 @@ class A_star:
     def find_previous_step(self, start_node, last_node):
         current_node = self.explored_nodes[last_node.label]
 
-        self.path = np.append(self.path, self.graph.get_graph()[last_node.label])
+        self.path = np.append(self.path, (self.graph.get_graph()[last_node.label], current_node[1]))
         self.total_cost += current_node[1]
         
         if current_node[0] != start_node:
             self.find_previous_step(start_node, current_node[0])
         else:
-            self.path = np.append(self.path, start_node)
+            self.path = np.append(self.path, (start_node, 0))
 
     def backward_search(self, start_node, goal_node):
         if goal_node.label in list(self.explored_nodes.keys()):

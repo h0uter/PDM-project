@@ -18,7 +18,7 @@ class Controller:
 
         # Height gain
         self.Kp_z = 10
-        self.Kd_z = 8
+        self.Kd_z = 5
 
         # Position -> Angle PID
         self.Kp = 0.25
@@ -31,25 +31,28 @@ class Controller:
         # Yaw Angle -> Thrust Delta PID
         self.Kp_ya = 2#0.2
         self.Kd_ya = 2#0.2
-
-        self.prev_local_pos_error = np.array([0, 0, 0])
-        self.prev_orientation_error = np.array([0, 0, 0])
         
         self.dt = 0.01
         self.time = 0
 
+        # Drone control constants
         self.MAX_ROT = np.pi/8 # rad
         self.MAX_D_POS_ERROR = 10 # m/s
         self.MAX_D_ORIENT_ERROR = np.pi/5 # rad/s
-        self.TARGET_REACHED_THRESHOLD = 0.2 # m
         self.VEL_ONLY_DERIVATIVE = True
+
+        # Target constants
+        self.TARGET_REACHED_THRESHOLD = 0.3 # m
         self.CHASE_DISTANCE = 0.5 # m
 
-        # Path following
+        # Path following settings
         self.path = None
         self.current_path_node = 0
         self.path_finished = False
         self.chase = False
+
+        self.prev_local_pos_error = np.array([0, 0, 0])
+        self.prev_orientation_error = np.array([0, 0, 0])
 
     def update(self):
 
@@ -60,9 +63,7 @@ class Controller:
         state = self.drone.eye_of_god()
 
         """OUTER LOOP PITCH & ROLL POSITION CONTROLLER"""
-        # x
-        # y
-        # by feeding into roll and pitch
+
         pos = state[0:3]
 
         # rotation matrix to transform global pos error into local pos error
@@ -71,16 +72,16 @@ class Controller:
         rot = np.linalg.inv(np.array([[np.cos(yaw), -np.sin(yaw), 0],
                         [np.sin(yaw), np.cos(yaw), 0], [0, 0, 1]]))
 
+        # Calculate the chase position if enabled
         if self.chase:
             self.internal_target = self.chase_target(pos, self.target, self.path[self.current_path_node-1, :])
         else:
             self.internal_target = self.target
 
-        # world to body conversion of error
+        # World to body conversion of error
         global_pos_error = self.internal_target - pos
         
         local_pos_error = rot@global_pos_error
-        #print("global_pos_error:", global_pos_error, " local pos error: ", local_pos_error)
 
         if self.VEL_ONLY_DERIVATIVE:
             d_local_pos_error = -state[6:9]
@@ -92,8 +93,8 @@ class Controller:
         if not self.VEL_ONLY_DERIVATIVE and self.new_target:
             d_local_pos_error = np.zeros((3))
 
-        angle_reference = self.Kp * \
-            local_pos_error[0:2] + self.Kd*d_local_pos_error[0:2]
+        # Angle PD
+        angle_reference = self.Kp * local_pos_error[0:2] + self.Kd*d_local_pos_error[0:2]
 
         roll_reference = -angle_reference[1]
         pitch_reference = angle_reference[0]
@@ -103,7 +104,7 @@ class Controller:
 
         """YAW + INNER LOOP PITCH & ROLL ORIENTATION CONTROLLER"""
 
-        # limit target orientation to 45deg
+        # limit target orientation to MAX_ROT
         roll_reference = np.maximum(
             np.minimum(roll_reference, self.MAX_ROT),  -self.MAX_ROT)
         pitch_reference = np.maximum(
@@ -117,19 +118,13 @@ class Controller:
 
         orientation_error = self.target_orientation - rot@state[3:6]
 
-        #print('[Roll, Pitch, Yaw] state: ', rot@state[3:6])
-        #print('[Roll, Pitch, Yaw] target: ', self.target_orientation)
-        #print("[Roll, Pitch, Yaw] error:", orientation_error)
-
-
         d_orientation_error = np.maximum(np.minimum((orientation_error -
                                self.prev_orientation_error)/self.dt, self.MAX_D_ORIENT_ERROR), -self.MAX_D_ORIENT_ERROR)
         
         if self.new_target:
             d_orientation_error = np.zeros((3))
-        
-        #print("Roll: P action", self.Kp_a*orientation_error[0], "D action", self.Kd_a*d_orientation_error[0])
 
+        # Orientation PDs
         d_orientation = self.Kp_a*orientation_error[0:2] + self.Kd_a*d_orientation_error[0:2]
         d_orientation = np.append(d_orientation, self.Kp_ya*orientation_error[2] + self.Kd_ya*d_orientation_error[2])
 
@@ -142,11 +137,9 @@ class Controller:
 
         g = 9.81
 
-        # trust controller
+        # Trust PD + feedforward gravity
         thrust_cmd = self.drone.m * \
             (g + self.Kp_z*local_pos_error[2] + self.Kd_z*d_local_pos_error[2])/4
-
-        #print('Thrust, roll, pitch, yaw command:', thrust_cmd, roll_cmd, pitch_cmd, yaw_cmd)
 
         """MOTOR MIXING ALGORITHM"""
 
@@ -156,13 +149,8 @@ class Controller:
         motor_D = thrust_cmd + pitch_cmd + yaw_cmd
 
         motor_forces = np.array([motor_A, motor_B, motor_C, motor_D])
-        #print("motor force pre:", motor_forces)
-
         motor_forces = np.maximum(0, motor_forces)
 
-        #print("motor force post:", motor_forces)
-
-        # TODO: better way of sharing drone parameters
         self.command_vector = np.sqrt(motor_forces/self.drone.kf)
 
         self.drone.set_motor_commands(self.command_vector)
@@ -210,7 +198,7 @@ class Controller:
         Will transform the path to equal distance targets between the nodes for
         more accurate path tracking if control_mode is 1.
 
-        Will enable chase mode when control_mode is 2.
+        Will enable chase mode when control_mode is 2 (recommended).
         """
 
         # Add initial location
@@ -226,6 +214,11 @@ class Controller:
         self.path_finished = False
     
     def chase_target(self, pos, target, previous=None):
+        """
+        Transforms the target position to an equaldistance position from the current location.
+        If a previous target is giving it will project onto the line between the two points and
+        give a constant offset from the clostest point on the line (recommended).
+        """
 
         if previous is not None:
             curr = pos-previous

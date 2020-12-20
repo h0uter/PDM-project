@@ -40,7 +40,7 @@ class A_star:
                 update = True
 
                 if connected_node.label in self.priority_queue:
-                    update = (self.priority_queue[connected_node][path_cost] <= path_cost)
+                    update = (self.priority_queue[connected_node][path_cost] > path_cost)
 
                 if update:
                     self.priority_queue[connected_node.label] = {"object": connected_node,

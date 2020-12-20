@@ -51,7 +51,7 @@ class Drone:
             moment_vector = np.asarray([0, 0, moment])
             combined_moment_vector = np.cross(arm, force_vector) + moment_vector
 
-            self.motor_thrust_matrix[idx] = np.dot(T, force_vector) / 100 + np.dot(T, arm) + self.s[:3]
+            self.motor_thrust_matrix[idx] = np.dot(T, force_vector) / 10 + np.dot(T, arm) + self.s[:3]
             self.motor_speeds[idx] = motor.get_motor_speed()
 
             total_force_vector += force_vector
@@ -122,7 +122,7 @@ class Motor:
         self.omega_ref = np.clip(omega_ref, -self.max_omega * 0.8, self.max_omega * 0.8) * self.direction
     
     def calc_max_angular_acceleration(self):
-        max_torque = max(abs(self.omega) * (-self.max_torque / self.max_omega) + self.max_torque - (self.km * self.omega**2), 0.1 * self.max_torque)
+        max_torque = max(abs(self.omega) * (-self.max_torque / self.max_omega) + self.max_torque - (self.km * self.omega**2), 0.01 * self.max_torque)
         return max_torque / self.propellor_inertia
 
     def update(self):
@@ -141,7 +141,7 @@ class Motor:
     def get_thrust_values(self):
         self.update()
 
-        moment_motor = self.km * self.omega**2 * self.direction + self.t_acc
+        moment_motor = self.km * self.omega**2 * self.direction #+ self.t_acc
         force_motor = self.kf * self.omega**2
         return (force_motor, moment_motor)
     

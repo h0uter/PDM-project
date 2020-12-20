@@ -67,36 +67,4 @@ class RRT:
     
     def get_graph(self):
         return self.graph
-
-start = np.asarray([3,3,4])
-goal = np.asarray([7,3,7])
-search_range = 0.5
-domain = ((0, 10), (0, 10), (0, 10))
-rrt = RRT(start, goal, search_range, domain, max_iters=1000)
-rrt.compute_paths()
-rrt.get_graph().plot_graph(domain)
-
-graph = rrt.get_graph()
-a_star_planner = A_star(graph)
-path, cost, success = a_star_planner.find_path(graph.get_graph()['start'], graph.get_graph()['542'])
-print(path, cost)
-
-fig = plt.figure()
-ax = fig.add_subplot(111, projection='3d')
-
-x_domain, y_domain, z_domain = domain
-ax.set_zlim3d(x_domain)
-ax.set_xlim3d(y_domain)
-ax.set_ylim3d(z_domain)
-
-for n, node in enumerate(path):
-    ax.scatter(node.pos[0], node.pos[1], node.pos[2], s=10, label=node.label)
-    if n < len(path) - 1:
-        node1 = node
-        node2 = path[n+1]
-        x1, y1, z1 = node1.pos[0], node1.pos[1], node1.pos[2]
-        x2, y2, z2 = node2.pos[0], node2.pos[1], node2.pos[2]
-        ax.plot([x1, x2], [y1, y2], [z1, z2])
-
-plt.show()
-
+    

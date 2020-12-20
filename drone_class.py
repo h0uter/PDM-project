@@ -51,7 +51,7 @@ class Drone:
             moment_vector = np.asarray([0, 0, moment])
             combined_moment_vector = np.cross(arm, force_vector) + moment_vector
 
-            self.motor_thrust_matrix[idx] = np.dot(T, force_vector) / 100 + np.dot(T, arm) + self.s[:3]
+            self.motor_thrust_matrix[idx] = np.dot(T, force_vector) / 10 + np.dot(T, arm) + self.s[:3]
             self.motor_speeds[idx] = motor.get_motor_speed()
 
             total_force_vector += force_vector

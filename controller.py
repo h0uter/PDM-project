@@ -253,8 +253,3 @@ def transform_path(path):
         path_out = np.append(path_out, np.linspace(0, steps*step, num=steps)[:, None]*direction + p0, axis=0)
     
     return path_out
-
-
-
-
-

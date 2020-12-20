@@ -1,5 +1,6 @@
 import numpy as np
 import matplotlib.pyplot as plt
+from mpl_toolkits.mplot3d.art3d import Poly3DCollection
 from pyquaternion import Quaternion as Quat
 
 class Sphere:
@@ -47,6 +48,13 @@ class SphereManager:
             sphere_array.append(Sphere(self.r_array[i], self.pos_array[i], self.dronehitbox_r, self.safety_margin))
 
         return sphere_array
+
+    def draw(self, ax, sphere_array):
+        # plot spheres
+        for sphere in sphere_array:
+            x, y, z = sphere.create_sphere()
+            ax.plot_wireframe(x, y, z, color="r")
+
 
 class Polygon:
 
@@ -204,6 +212,16 @@ class PrismManager:
 
         return prism_array
 
+    def draw(self, ax, prism_array):
+
+        #plot prisms
+        for prism in prism_array:
+            for polygon in prism.polygons_array:
+                edges = polygon.create_polygon()
+                drawing = Poly3DCollection(edges)
+                ax.add_collection3d(drawing)
+                drawing.set_alpha(0.3)
+
 class Beam:
 
     def __init__(self, height, length, width, pos, dronehitbox_r, safety_margin, rotation):
@@ -316,3 +334,12 @@ class BeamManager:
             beams_array.append(Beam(self.dimensions_array[i][0], self.dimensions_array[i][1], self.dimensions_array[i][2], self.pos_array[i], self.dronehitbox_r, self.safety_margin, self.dimensions_array[i][3]))
 
         return beams_array
+
+    def draw(self, ax, beam_array):
+        #plot beams
+        for beam in beam_array:
+            for polygon in beam.polygons_array:
+                edges = polygon.create_polygon()
+                drawing = Poly3DCollection(edges)
+                ax.add_collection3d(drawing)
+                drawing.set_alpha(0.3)

@@ -8,9 +8,6 @@ class DroneHitbox:
         self.s = np.asarray(s0[:3]) # starting location of drone
         self.r = r # radius of drone hitbox
 
-    def update(self, s):
-        self.s = s[:3]
-
 class CollisionDetector:
 
     def __init__(self, safety_margin):
@@ -97,7 +94,7 @@ class CollisionDetector:
             pass
 
         else:
-            for i, polygon in enumerate(polygons):
+            for polygon in polygons:
                 edges = polygon.polygon_edges()
                 normal_plane = np.cross(edges[0], edges[2])
 
@@ -110,12 +107,12 @@ class CollisionDetector:
                 d = np.dot(normal_plane, polygon.points[0])
 
                 t = (np.dot(normal_plane, self.drone_vector[1]) + d) / line_on_normal
+                # check if collision happens behind or in front of line segment
                 if t < 0 or t > 1*self.drone_vector[2]: continue
 
                 elif self.polygon_surface_collision(dronehitbox, polygon, edges, normal_plane, t):
 
                     self.polygon_collision_point = (self.drone_vector[1] + self.drone_vector[0] * t).tolist()
-                    print("surface")
                     return True
 
         return polygon_collision

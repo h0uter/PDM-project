@@ -37,33 +37,13 @@ def update(frame):
 
     drone.set_motor_commands([150, 150, 150, 150])
     drone.update()
-    drone_hitbox.update(drone.s)
     test_collision_line = [np.array([2.5,2.5,0]),np.array([2.5,2.5,4])] # collision line for debugging purposes
-    print(collision_detector.check_collision(drone_hitbox, sphere_array, prism_array, beam_array, test_collision_line))
-    if collision_detector.sphere_collision_point:
-        x = collision_detector.sphere_collision_point[0]
-        y = collision_detector.sphere_collision_point[1]
-        z = collision_detector.sphere_collision_point[2]
-        ax.plot(x, y, z, 'bo')
-        print(collision_detector.sphere_collision_point)
-        a # a hard stop for debugging
-        collision_detector.sphere_collision_point = []
-
-    elif collision_detector.polygon_collision_point:
-        x = collision_detector.polygon_collision_point[0]
-        y = collision_detector.polygon_collision_point[1]
-        z = collision_detector.polygon_collision_point[2]
-        ax.plot(x, y, z, 'bo')
-        print(collision_detector.polygon_collision_point)
-        a # a hard stop for debugging
-        collision_detector.polygon_collision_point = []
-
+    collision_detector.check_collision(drone_hitbox, sphere_array, prism_array, beam_array, test_collision_line) #returns True or False
 
     p = drone.get_drone()
     thrust_vectors = drone.get_thrust_vectors()
     command_vector = controller.get_command_vector()
     speed_vector = drone.get_motor_speeds()
-
 
     os.system('cls' if os.name == 'nt' else 'clear')
     motors = ['A', 'C', 'B', 'D']
@@ -144,29 +124,13 @@ sphere_array = sphere_manager.create_spheres()
 prism_array = prism_manager.create_prisms()
 beam_array = beam_manager.create_beams()
 
+#draw obstacles
+sphere_manager.draw(ax, sphere_array)
+prism_manager.draw(ax, prism_array)
+beam_manager.draw(ax, beam_array)
+
 #initialise collision detector
 collision_detector = CollisionDetector(cfg.safety_margin)
-
-#plot spheres
-for sphere in sphere_array:
-    x, y, z = sphere.create_sphere()
-    ax.plot_wireframe(x, y, z, color="r")
-
-#plot prisms
-for prism in prism_array:
-    for polygon in prism.polygons_array:
-        edges = polygon.create_polygon()
-        drawing = Poly3DCollection(edges)
-        ax.add_collection3d(drawing)
-        drawing.set_alpha(0.3)
-
-#plot beams
-for beam in beam_array:
-    for polygon in beam.polygons_array:
-        edges = polygon.create_polygon()
-        drawing = Poly3DCollection(edges)
-        ax.add_collection3d(drawing)
-        drawing.set_alpha(0.3)
 
 anim = motor_locations + frame + thrust1 + thrust2 + thrust3 + thrust4
 ani = animation.FuncAnimation(fig, update, interval = dt**1000, blit=False)

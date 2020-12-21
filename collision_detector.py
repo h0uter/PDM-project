@@ -23,12 +23,12 @@ class CollisionDetector:
 
         for line_segment in line_segment_array:
 
-            if self.check_collision(self.spheres, self.prisms, self.beams, line_segment):
+            if self.check_collision(line_segment):
                 return True
 
         return False
 
-    def check_collision(self, spheres, prism_array, beam_array, drone_vector_points):
+    def check_collision(self, drone_vector_points):
 
         self.drone_vector.append((drone_vector_points[1] - drone_vector_points[0]) /
         np.linalg.norm((drone_vector_points[1] - drone_vector_points[0]))) # normalized direction vector

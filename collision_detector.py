@@ -82,9 +82,9 @@ class CollisionDetector:
             line_on_normal = np.dot(normal_plane, self.drone_vector[0])
             if np.isclose(abs(line_on_normal), 0): continue
 
-            d = np.dot(normal_plane, polygon.points[0])
+            d = -np.dot(normal_plane, polygon.points[0])
 
-            t = (np.dot(normal_plane, self.drone_vector[1]) + d) / line_on_normal
+            t = - (np.dot(normal_plane, self.drone_vector[1]) + d) / line_on_normal
             # check if collision happens behind or in front of line segment
             if t < 0 or t > self.drone_vector[2]: continue
 
@@ -118,7 +118,7 @@ class CollisionDetector:
         # edge 2
         vp2 = collision_point - polygon.points[2]
         edge_2 = polygon.points[0] - polygon.points[2]
-        C = np.cross(edge_2, vp2) / np.linalg.norm(np.cross(edges[2], vp2))
+        C = np.cross(edge_2, vp2) / np.linalg.norm(np.cross(edge_2, vp2))
         if np.dot(normal_plane, C) < 0: return False
 
         return True

@@ -7,10 +7,12 @@ from mpl_toolkits.mplot3d import Axes3D
 
 class RRT:
 
-    def __init__(self, start, goal, search_range, domain, max_iters=10000):
+    def __init__(self, start, goal, search_range, domain, collision_manager, controller, max_iters=10000):
         self.graph = Graph(start, goal)
         self.x_domain, self.y_domain, self.z_domain = domain
         self.search_range = search_range
+        self.collision_manager = collision_manager
+        self.controller = controller
         self.max_iters = max_iters
 
         np.random.seed(69)

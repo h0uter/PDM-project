@@ -37,8 +37,23 @@ sphere_manager = SphereManager(cfg.n_spheres, cfg.spheres_pos, cfg.spheres_r, cf
 prism_manager = PrismManager(cfg.n_prisms, cfg.prisms, cfg.prisms_pos, cfg.dronehitbox_r, cfg.safety_margin)
 beam_manager = BeamManager(cfg.n_beams, cfg.beams, cfg.beams_pos, cfg.dronehitbox_r, cfg.safety_margin)
 
+#create obstacle objects
+sphere_array = sphere_manager.create_spheres()
+prism_array = prism_manager.create_prisms()
+beam_array = beam_manager.create_beams()
+
+collision_detector = CollisionDetector(cfg.safety_margin, sphere_array, prism_array, beam_array, cfg.dronehitbox_r)
 controller = Controller(drone)
-rrt = RRT(np.asarray([x0, y0, z0]), np.asarray([x_target, y_target, z_target]), search_range=0.5, domain=(xs, ys, zs), max_iters=500)
+
+rrt = RRT(start=np.asarray([x0, y0, z0]), 
+          goal=np.asarray([x_target, y_target, z_target]), 
+          search_range=0.5, 
+          domain=(xs, ys, zs), 
+          collision_manager=collision_detector, 
+          controller=controller, 
+          max_iters=500
+          )
+
 rrt.compute_paths()
 
 graph = rrt.get_graph()
@@ -115,11 +130,6 @@ thrust4 = ax.plot([0,0], [0,0], [0,0], 'b-')
 target_location = ax.plot([controller.internal_target[0]], [controller.internal_target[1]], [controller.internal_target[2]], 'go')
 # path plot
 path_plot = ax.plot(controller.path[0,:], controller.path[1, :], controller.path[2, :], 'm:')
-
-#create obstacle objects
-sphere_array = sphere_manager.create_spheres()
-prism_array = prism_manager.create_prisms()
-beam_array = beam_manager.create_beams()
 
 #draw obstacles
 sphere_manager.draw(ax, sphere_array)

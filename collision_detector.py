@@ -35,7 +35,7 @@ class CollisionDetector:
         self.drone_vector.append(drone_vector_points[0]) # origin of vector
         self.drone_vector.append(np.linalg.norm((drone_vector_points[1] - drone_vector_points[0]))) # magnitude of direction vector
 
-        if self.sphere_collision_detector(self.dronehitbox_r, self.spheres) or self.figure_collision_detector(self.dronehitbox_r, self.prisms, self.beams):
+        if self.sphere_collision_detector() or self.figure_collision_detector():
             self.drone_vector = []
             return True
 

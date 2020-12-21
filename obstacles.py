@@ -220,7 +220,7 @@ class PrismManager:
                 edges = polygon.create_polygon()
                 drawing = Poly3DCollection(edges)
                 ax.add_collection3d(drawing)
-                drawing.set_alpha(0.3)
+                drawing.set_alpha(0.5)
 
 class Beam:
 
@@ -342,4 +342,4 @@ class BeamManager:
                 edges = polygon.create_polygon()
                 drawing = Poly3DCollection(edges)
                 ax.add_collection3d(drawing)
-                drawing.set_alpha(0.3)
+                drawing.set_alpha(0.5)

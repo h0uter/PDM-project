@@ -48,7 +48,6 @@ rrt = RRT(start=np.asarray([x0, y0, z0]),
           domain=(xs, ys, zs), 
           collision_manager=collision_detector, 
           controller=controller,
-          drone=copy.copy(drone),
           max_iters=250
           )
 
@@ -63,7 +62,7 @@ graph.plot_graph(domain=(xs, ys, zs), sphere_manager=sphere_manager,
                                       beam_array=beam_array)
 
 a_star_planner = A_star(graph)
-path, cost = a_star_planner.find_path(graph.get_graph()['start'], graph.get_graph()['90'])
+path, cost = a_star_planner.find_path(graph.get_graph()['start'], graph.get_graph()['69'])
 path_pos = np.zeros((len(path), 3))
 
 for i, node in enumerate(path): path_pos[i] = node.pos

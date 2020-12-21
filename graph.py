@@ -19,11 +19,18 @@ class Graph:
         self.graph[str(self.label)] = new_node
 
         return new_node
-    
+
     def connect(self, node1, node2):
         node1.add_edge(node2)
         node2.add_edge(node1)
     
+    def rewire(self, node_to_be_disconnected, node_to_be_rewired, node_to_be_connected):
+        node_to_be_connected.add_edge(node_to_be_rewired)
+        node_to_be_rewired.add_edge(node_to_be_connected)
+
+        node_to_be_rewired.remove_edge(node_to_be_disconnected)
+        node_to_be_disconnected.remove_edge(node_to_be_rewired)
+
     def get_graph(self):
         return self.graph
     
@@ -66,6 +73,12 @@ class Node:
         new_edge = Edge(self, connected_node)
         self.edges = np.append(self.edges, new_edge)
     
+    def remove_edge(self, connected_node):
+        for idx, edge in enumerate(self.edges):
+            if edge.node2 == connected_node:
+                self.edges = np.delete(self.edges, idx)
+                break
+                
     def get_edges(self):
         return self.edges
 

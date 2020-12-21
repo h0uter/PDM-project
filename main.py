@@ -7,7 +7,10 @@ import copy
 import config as cfg
 from drone_class import Drone
 from controller import Controller
+
 from RRT import RRT
+from RRT_star import RRT_star
+
 from A_star import A_star
 from collision_detector import CollisionDetector
 from obstacles import SphereManager, BeamManager, PrismManager
@@ -42,7 +45,7 @@ beam_array = beam_manager.create_beams()
 collision_detector = CollisionDetector(cfg.safety_margin, sphere_array, prism_array, beam_array, cfg.dronehitbox_r)
 controller = Controller(drone)
 
-rrt = RRT(start=np.asarray([x0, y0, z0]), 
+rrt = RRT_star(start=np.asarray([x0, y0, z0]), 
           goal=np.asarray([x_target, y_target, z_target]), 
           search_range=0.5, 
           domain=(xs, ys, zs), 

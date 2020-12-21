@@ -6,7 +6,7 @@ from mpl_toolkits.mplot3d.art3d import Poly3DCollection
 
 from drone_class import Drone
 from controller import Controller
-from collision_detector import DroneHitbox, CollisionDetector
+from collision_detector import CollisionDetector
 from obstacles import SphereManager, BeamManager, PrismManager
 
 import os
@@ -37,8 +37,6 @@ def update(frame):
 
     drone.set_motor_commands([150, 150, 150, 150])
     drone.update()
-    test_collision_line = [np.array([2.5,2.5,0]),np.array([2.5,2.5,4])] # collision line for debugging purposes
-    collision_detector.check_collision(drone_hitbox, sphere_array, prism_array, beam_array, test_collision_line) #returns True or False
 
     p = drone.get_drone()
     thrust_vectors = drone.get_thrust_vectors()
@@ -130,7 +128,7 @@ prism_manager.draw(ax, prism_array)
 beam_manager.draw(ax, beam_array)
 
 #initialise collision detector
-collision_detector = CollisionDetector(cfg.safety_margin)
+collision_detector = CollisionDetector(cfg.safety_margin, sphere_array, prism_array, beam_array, cfg.dronehitbox_r)
 
 anim = motor_locations + frame + thrust1 + thrust2 + thrust3 + thrust4
 ani = animation.FuncAnimation(fig, update, interval = dt**1000, blit=False)

@@ -2,6 +2,7 @@ import numpy as np
 import matplotlib.pyplot as plt
 import matplotlib.animation as animation
 from mpl_toolkits.mplot3d.art3d import Poly3DCollection
+import copy
 
 import config as cfg
 from drone_class import Drone
@@ -46,8 +47,9 @@ rrt = RRT(start=np.asarray([x0, y0, z0]),
           search_range=0.5, 
           domain=(xs, ys, zs), 
           collision_manager=collision_detector, 
-          controller=controller, 
-          max_iters=100
+          controller=controller,
+          drone=copy.copy(drone),
+          max_iters=250
           )
 
 rrt.compute_paths()
@@ -61,7 +63,7 @@ graph.plot_graph(domain=(xs, ys, zs), sphere_manager=sphere_manager,
                                       beam_array=beam_array)
 
 a_star_planner = A_star(graph)
-path, cost = a_star_planner.find_path(graph.get_graph()['start'], graph.get_graph()['40'])
+path, cost = a_star_planner.find_path(graph.get_graph()['start'], graph.get_graph()['90'])
 path_pos = np.zeros((len(path), 3))
 
 for i, node in enumerate(path): path_pos[i] = node.pos

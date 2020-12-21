@@ -17,6 +17,8 @@ class Graph:
         connected_node.add_edge(new_node)
 
         self.graph[str(self.label)] = new_node
+
+        return new_node
     
     def get_graph(self):
         return self.graph

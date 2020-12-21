@@ -1,18 +1,21 @@
 import numpy as np
 from graph import Graph
 from A_star import A_star
+from controller import Controller
 
 import matplotlib.pyplot as plt
 from mpl_toolkits.mplot3d import Axes3D
+import copy
 
 class RRT:
 
-    def __init__(self, start, goal, search_range, domain, collision_manager, controller, max_iters=10000):
+    def __init__(self, start, goal, search_range, domain, collision_manager, controller, drone, max_iters=10000):
         self.graph = Graph(start, goal)
         self.x_domain, self.y_domain, self.z_domain = domain
         self.search_range = search_range
         self.collision_manager = collision_manager
         self.controller = controller
+        self.drone = drone
         self.max_iters = max_iters
 
         np.random.seed(69)
@@ -58,11 +61,39 @@ class RRT:
         # there are no obstacles now so this would always connect these
         pass
 
+    def check_spline(self, new_node_pos, connected_node):
+        g = copy.copy(self.graph)
+        target_node = g.add_node(new_node_pos, connected_node)
+
+        #define new planner based on updated graph and extract optimal path to new node
+        a_star = A_star(g)
+        path, _ = a_star.find_path(self.graph.get_graph()['start'], target_node)
+
+        #convert this path to nx3 array for controller
+        path_pos = np.zeros((len(path), 3))
+        for i, node in enumerate(path): path_pos[i] = node.pos
+
+        #create new instances of drone and controller and pass arguments
+        drone = copy.copy(self.drone)
+        controller = Controller(drone)
+        controller.follow_path(path_pos[1:])
+
+        pos_data = drone.eye_of_god()[:3]
+
+        #run full simulation and gather pos data at each timestep
+        while not controller.path_finished:
+            controller.update()
+            drone.update()
+            pos_data = np.vstack((pos_data, drone.eye_of_god()[:3]))
+        
+        #check wheter at any point the drone collides
+        return self.collision_manager.update(pos_data)
+
     def compute_paths(self):
         for _ in range(self.max_iters):
             closest_node, new_node_pos = self.get_new_node()
-            if (not self.check_collision(closest_node.pos, new_node_pos)):
-                self.graph.add_node(new_node_pos, closest_node)
+            if not self.check_collision(closest_node.pos, new_node_pos):
+                _ = self.graph.add_node(new_node_pos, closest_node)
     
     def get_graph(self):
         return self.graph

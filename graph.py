@@ -20,6 +20,10 @@ class Graph:
 
         return new_node
     
+    def connect(self, node1, node2):
+        node1.add_edge(node2)
+        node2.add_edge(node1)
+    
     def get_graph(self):
         return self.graph
     

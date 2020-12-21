@@ -17,11 +17,17 @@ class Graph:
         connected_node.add_edge(new_node)
 
         self.graph[str(self.label)] = new_node
+
+        return new_node
+    
+    def connect(self, node1, node2):
+        node1.add_edge(node2)
+        node2.add_edge(node1)
     
     def get_graph(self):
         return self.graph
     
-    def plot_graph(self, domain):
+    def plot_graph(self, domain, sphere_manager=None, sphere_array=None, prism_manager=None, prism_array=None, beam_manager=None, beam_array=None):
         fig = plt.figure()
         ax = fig.add_subplot(111, projection='3d')
 
@@ -37,6 +43,15 @@ class Graph:
                 x1, y1, z1 = edge.node1.pos[0], edge.node1.pos[1], edge.node1.pos[2]
                 x2, y2, z2 = edge.node2.pos[0], edge.node2.pos[1], edge.node2.pos[2]
                 ax.plot([x1, x2], [y1, y2], [z1, z2])
+        
+        if (sphere_manager is not None) and (sphere_array is not None):
+            sphere_manager.draw(ax, sphere_array)
+
+        if (prism_manager is not None) and (prism_array is not None):
+            prism_manager.draw(ax, prism_array)
+
+        if (beam_manager is not None) and (beam_array is not None):
+            beam_manager.draw(ax, beam_array)
         
         plt.show()
         

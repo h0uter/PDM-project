@@ -51,8 +51,7 @@ class RRT:
         return closest_node, new_pos
 
     def check_collision(self, pos1, pos2):
-        #TODO, check position 2 on collisions and vector pos2 - pos1, possible with steering function
-        return False
+        return self.collision_manager.update([pos1, pos2])
     
     def check_line_of_sight(self, node):
         #TODO method checks whether or not checked node has line of sight to target, if so connect these immeadiatly 
@@ -64,8 +63,6 @@ class RRT:
             closest_node, new_node_pos = self.get_new_node()
             if (not self.check_collision(closest_node.pos, new_node_pos)):
                 self.graph.add_node(new_node_pos, closest_node)
-            else:
-                continue
     
     def get_graph(self):
         return self.graph

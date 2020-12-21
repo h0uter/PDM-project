@@ -1,19 +1,15 @@
-import datetime as dt
-from functools import total_ordering
 import numpy as np
 import matplotlib.pyplot as plt
 import matplotlib.animation as animation
-import config as cfg
 from mpl_toolkits.mplot3d.art3d import Poly3DCollection
 
+import config as cfg
 from drone_class import Drone
 from controller import Controller
 from RRT import RRT
 from A_star import A_star
 from collision_detector import CollisionDetector
 from obstacles import SphereManager, BeamManager, PrismManager
-
-import os
 
 dt = 0.01
 xs, ys, zs = [0.0, 5.0], [0.0, 5.0], [0.0, 5.0]
@@ -51,16 +47,21 @@ rrt = RRT(start=np.asarray([x0, y0, z0]),
           domain=(xs, ys, zs), 
           collision_manager=collision_detector, 
           controller=controller, 
-          max_iters=500
+          max_iters=100
           )
 
 rrt.compute_paths()
 
 graph = rrt.get_graph()
-graph.plot_graph((xs, ys, zs))
+graph.plot_graph(domain=(xs, ys, zs), sphere_manager=sphere_manager,
+                                      sphere_array=sphere_array,
+                                      prism_manager=prism_manager,
+                                      prism_array=prism_array,
+                                      beam_manager=beam_manager,
+                                      beam_array=beam_array)
 
 a_star_planner = A_star(graph)
-path, cost = a_star_planner.find_path(graph.get_graph()['start'], graph.get_graph()['440'])
+path, cost = a_star_planner.find_path(graph.get_graph()['start'], graph.get_graph()['40'])
 path_pos = np.zeros((len(path), 3))
 
 for i, node in enumerate(path): path_pos[i] = node.pos

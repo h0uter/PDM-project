@@ -9,17 +9,17 @@ prisms = []
 prisms.append([1, 3, 2, [0,0,0]]) #prism width, length, height, rotation x, y, z in degrees
 
 prisms_pos = []
-prisms_pos.append([2.5, 2.5, 4])
-n_prisms = 1
+#prisms_pos.append([2.5, 2.5, 4])
+n_prisms = 0
 
 beams = []
 beams.append([1, 3, 2, [0,0,0]]) #prism width, length, height, rotation x, y, z in degrees
-#beams.append([2, 1, 3, [0,0,0]])
+beams.append([2, 1, 3, [0,0,0]])
 
 beams_pos = []
 beams_pos.append([0, 0, 2])
-#beams_pos.append([1, 1, 3])
-n_beams = 1
+beams_pos.append([1, 1, 3])
+n_beams = 2
 
 dronehitbox_r = 0.2
 safety_margin = 0.1

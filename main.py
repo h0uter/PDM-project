@@ -30,14 +30,14 @@ drone = Drone(s0=np.asarray([x0, y0, z0, 0, 0, 0]), #initial state
               )
 
 controller = Controller(drone)
-rrt = RRT(np.asarray([x0, y0, z0]), np.asarray([x_target, y_target, z_target]), search_range=0.5, domain=(xs, ys, zs), max_iters=500)
+rrt = RRT(np.asarray([x0, y0, z0]), np.asarray([x_target, y_target, z_target]), search_range=0.5, domain=(xs, ys, zs), max_iters=1500)
 rrt.compute_paths()
 
 graph = rrt.get_graph()
 graph.plot_graph((xs, ys, zs))
 
 a_star_planner = A_star(graph)
-path, cost = a_star_planner.find_path(graph.get_graph()['start'], graph.get_graph()['440'])
+path, cost = a_star_planner.find_path(graph.get_graph()['start'], graph.get_graph()['1440'])
 path_pos = np.zeros((len(path), 3))
 
 for i, node in enumerate(path):

@@ -1,15 +1,16 @@
-import datetime as dt
-from functools import total_ordering
 import numpy as np
 import matplotlib.pyplot as plt
 import matplotlib.animation as animation
+from mpl_toolkits.mplot3d.art3d import Poly3DCollection
+import copy
 
+import config as cfg
 from drone_class import Drone
 from controller import Controller
 from RRT import RRT
 from A_star import A_star
-
-import os
+from collision_detector import CollisionDetector
+from obstacles import SphereManager, BeamManager, PrismManager
 
 dt = 0.01
 xs, ys, zs = [0.0, 5.0], [0.0, 5.0], [0.0, 5.0]
@@ -29,26 +30,48 @@ drone = Drone(s0=np.asarray([x0, y0, z0, 0, 0, 0]), #initial state
               propellor_inertia = 0.001             #kg*m^2, propellor inertia
               )
 
+sphere_manager = SphereManager(cfg.n_spheres, cfg.spheres_pos, cfg.spheres_r, cfg.dronehitbox_r, cfg.safety_margin)
+prism_manager = PrismManager(cfg.n_prisms, cfg.prisms, cfg.prisms_pos, cfg.dronehitbox_r, cfg.safety_margin)
+beam_manager = BeamManager(cfg.n_beams, cfg.beams, cfg.beams_pos, cfg.dronehitbox_r, cfg.safety_margin)
+
+#create obstacle objects
+sphere_array = sphere_manager.create_spheres()
+prism_array = prism_manager.create_prisms()
+beam_array = beam_manager.create_beams()
+
+collision_detector = CollisionDetector(cfg.safety_margin, sphere_array, prism_array, beam_array, cfg.dronehitbox_r)
 controller = Controller(drone)
-rrt = RRT(np.asarray([x0, y0, z0]), np.asarray([x_target, y_target, z_target]), search_range=0.5, domain=(xs, ys, zs), max_iters=500)
+
+rrt = RRT(start=np.asarray([x0, y0, z0]), 
+          goal=np.asarray([x_target, y_target, z_target]), 
+          search_range=0.5, 
+          domain=(xs, ys, zs), 
+          collision_manager=collision_detector, 
+          controller=controller,
+          max_iters=250
+          )
+
 rrt.compute_paths()
 
 graph = rrt.get_graph()
-graph.plot_graph((xs, ys, zs))
+graph.plot_graph(domain=(xs, ys, zs), sphere_manager=sphere_manager,
+                                      sphere_array=sphere_array,
+                                      prism_manager=prism_manager,
+                                      prism_array=prism_array,
+                                      beam_manager=beam_manager,
+                                      beam_array=beam_array)
 
 a_star_planner = A_star(graph)
-path, cost = a_star_planner.find_path(graph.get_graph()['start'], graph.get_graph()['440'])
+path, cost = a_star_planner.find_path(graph.get_graph()['start'], graph.get_graph()['69'])
 path_pos = np.zeros((len(path), 3))
 
-for i, node in enumerate(path):
-    print(node.label)
-    path_pos[i] = node.pos
-
+for i, node in enumerate(path): path_pos[i] = node.pos
 controller.follow_path(path_pos[1:])
 
 def update(frame):
     controller.update()
     drone.update()
+
     p = drone.get_drone()
     thrust_vectors = drone.get_thrust_vectors()
 
@@ -108,11 +131,19 @@ thrust4 = ax.plot([0,0], [0,0], [0,0], 'b-')
 #Target Location
 target_location = ax.plot([controller.internal_target[0]], [controller.internal_target[1]], [controller.internal_target[2]], 'go')
 # path plot
-path_plot = ax.plot(
-    controller.path[0,:], controller.path[1, :], controller.path[2, :], 'm:')
+path_plot = ax.plot(controller.path[0,:], controller.path[1, :], controller.path[2, :], 'm:')
+
+#draw obstacles
+sphere_manager.draw(ax, sphere_array)
+prism_manager.draw(ax, prism_array)
+beam_manager.draw(ax, beam_array)
+
+#initialise collision detector
+collision_detector = CollisionDetector(cfg.safety_margin, sphere_array, prism_array, beam_array, cfg.dronehitbox_r)
 
 # index anim as an array
 anim = motor_locations + frame + thrust1 + thrust2 + thrust3 + thrust4 + target_location + path_plot
 ani = animation.FuncAnimation(fig, update, interval = dt**1000, blit=False)
 
 plt.show()
+

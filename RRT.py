@@ -2,6 +2,7 @@ import numpy as np
 from graph import Graph
 from A_star import A_star
 from controller import Controller
+from ellipse import Ellipse
 
 import matplotlib.pyplot as plt
 from mpl_toolkits.mplot3d import Axes3D
@@ -9,7 +10,7 @@ import copy
 
 class RRT:
 
-    def __init__(self, start, goal, search_range, domain, collision_manager, controller, max_iters=10000):
+    def __init__(self, start, goal, search_range, domain, collision_manager, controller, informed, max_iters=10000):
         self.start = start
         self.goal = goal
         self.graph = Graph(start, goal)
@@ -17,7 +18,10 @@ class RRT:
         self.search_range = search_range
         self.collision_manager = collision_manager
         self.controller = controller
+        self.informed = informed
         self.max_iters = max_iters
+
+        self.ellipse = Ellipse(start, goal)
 
         np.random.seed(69)
 
@@ -37,10 +41,13 @@ class RRT:
         return closest_node
 
     def get_new_node(self):
-        random_point = np.random.rand(3) * np.asarray([self.x_domain[1] - self.x_domain[0],
-                                                       self.y_domain[1] - self.y_domain[0],
-                                                       self.z_domain[1] - self.z_domain[0]]) \
-                        + np.asarray([self.x_domain[0], self.y_domain[0], self.z_domain[0]]) 
+        if self.ellipse.ellipse_exists() and self.informed:
+            random_point = self.ellipse.get_random_point()
+        else:
+            random_point = np.random.rand(3) * np.asarray([self.x_domain[1] - self.x_domain[0],
+                                                        self.y_domain[1] - self.y_domain[0],
+                                                        self.z_domain[1] - self.z_domain[0]]) \
+                            + np.asarray([self.x_domain[0], self.y_domain[0], self.z_domain[0]]) 
 
         closest_node = self.get_closest_point(random_point)
         dir_vector = random_point - closest_node.pos
@@ -60,6 +67,11 @@ class RRT:
     def check_line_of_sight(self, node):
         if not self.check_collision(node.pos, self.goal):
             self.graph.connect(node, self.graph.get_graph()['goal'])
+            if self.informed:
+                a_star_planner = A_star(self.graph)
+                path, _ = a_star_planner.find_path(self.graph.get_graph()['start'], self.graph.get_graph()['goal'])
+                self.ellipse.define_ellipse(path)
+
 
     def compute_paths(self):
         self.check_line_of_sight(self.graph.get_graph()['start'])

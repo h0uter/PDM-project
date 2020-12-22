@@ -7,10 +7,7 @@ import copy
 import config as cfg
 from drone_class import Drone
 from controller import Controller
-
-from RRT import RRT
 from RRT_star import RRT_star
-
 from A_star import A_star
 from collision_detector import CollisionDetector
 from obstacles import SphereManager, BeamManager, PrismManager
@@ -18,7 +15,7 @@ from obstacles import SphereManager, BeamManager, PrismManager
 dt = 0.01
 xs, ys, zs = [0.0, 5.0], [0.0, 5.0], [0.0, 5.0]
 x0,y0,z0 = 0.5,0.5,0.5
-x_target, y_target, z_target = 4.1, 3.2, 5.3
+x_target, y_target, z_target = 4.5, 4.5, 4.5
 
 drone = Drone(s0=np.asarray([x0, y0, z0, 0, 0, 0]), #initial state  
               s_dot0 = np.zeros(6,),                #intitial velocities
@@ -51,7 +48,8 @@ rrt = RRT_star(start=np.asarray([x0, y0, z0]),
           domain=(xs, ys, zs), 
           collision_manager=collision_detector, 
           controller=controller,
-          max_iters=500
+          informed=True,
+          max_iters=1000
           )
 
 rrt.compute_paths()
@@ -66,6 +64,7 @@ graph.plot_graph(domain=(xs, ys, zs), sphere_manager=sphere_manager,
 
 a_star_planner = A_star(graph)
 path, cost = a_star_planner.find_path(graph.get_graph()['start'], graph.get_graph()['goal'])
+print(f'path found of length {cost} m')
 path_pos = np.zeros((len(path), 3))
 
 for i, node in enumerate(path): path_pos[i] = node.pos
@@ -149,4 +148,3 @@ anim = motor_locations + frame + thrust1 + thrust2 + thrust3 + thrust4 + target_
 ani = animation.FuncAnimation(fig, update, interval = dt**1000, blit=False)
 
 plt.show()
-

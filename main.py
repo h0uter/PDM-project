@@ -4,7 +4,7 @@ import matplotlib.animation as animation
 from mpl_toolkits.mplot3d.art3d import Poly3DCollection
 import copy
 
-import scenario_2 as cfg
+import scenario_3 as cfg
 from drone_class import Drone
 from controller import Controller
 from RRT import RRT
@@ -47,8 +47,8 @@ rrt = RRT_star(start=np.asarray(cfg.start),
           domain=(xs, ys, zs),
           collision_manager=collision_detector,
           controller=controller,
-          informed=False,
-          max_iters=720
+          informed=True,
+          max_iters=5000
           )
 
 rrt.compute_paths()
@@ -112,7 +112,7 @@ ax.set_ylim3d(zs)
 ax.set_xlabel('$X$', fontsize=20)
 ax.set_ylabel('$Y$', fontsize=20)
 ax.set_zlabel('$Z$', fontsize=20)
-ax.view_init(azim=0, elev=90)
+ax.view_init(azim=0, elev=0)
 
 p0 = drone.get_drone()
 

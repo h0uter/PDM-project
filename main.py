@@ -8,6 +8,7 @@ import config as cfg
 from drone_class import Drone
 from controller import Controller
 from RRT_star import RRT_star
+from RRT import RRT
 from A_star import A_star
 from collision_detector import CollisionDetector
 from obstacles import SphereManager, BeamManager, PrismManager
@@ -49,7 +50,9 @@ rrt = RRT_star(start=np.asarray([x0, y0, z0]),
           collision_manager=collision_detector, 
           controller=controller,
           informed=True,
-          max_iters=1000
+          kinodynamic=True,                         #remember to set a safety margin in config.py when disabling kinodynamic
+          initial_state=drone.eye_of_god(),
+          max_iters=500
           )
 
 rrt.compute_paths()

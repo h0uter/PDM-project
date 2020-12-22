@@ -30,4 +30,4 @@ beams_pos.append([1, 1, 3])
 n_beams = 2
 
 dronehitbox_r = 0.2
-safety_margin = 0.1
+safety_margin = 0.0

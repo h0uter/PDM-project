@@ -6,19 +6,19 @@ from ellipse import Ellipse
 
 import matplotlib.pyplot as plt
 from mpl_toolkits.mplot3d import Axes3D
-import copy
 
 class RRT:
 
-    def __init__(self, start, goal, search_range, domain, collision_manager, controller, informed, max_iters=10000):
+    def __init__(self, start, goal, search_range, domain, collision_manager, controller, informed, kinodynamic, initial_state, max_iters=1000):
         self.start = start
         self.goal = goal
-        self.graph = Graph(start, goal)
+        self.graph = Graph(start, goal, state0=initial_state)
         self.x_domain, self.y_domain, self.z_domain = domain
         self.search_range = search_range
         self.collision_manager = collision_manager
         self.controller = controller
         self.informed = informed
+        self.kinodynamic = kinodynamic
         self.max_iters = max_iters
 
         self.ellipse = Ellipse(start, goal)
@@ -61,25 +61,32 @@ class RRT:
         #node to connect to, new proposed node position
         return closest_node, new_pos
 
-    def check_collision(self, pos1, pos2):
-        return self.collision_manager.update([pos1, pos2])
+    def check_collision(self, node0, pos2):
+        if self.kinodynamic:
+            path_points, new_state = self.controller.steer(node0.pos, pos2, full_state=node0.state)
+            return self.collision_manager.update(path_points), new_state
+        else:
+            return self.collision_manager.update([node0.pos, pos2]), None
     
     def check_line_of_sight(self, node):
-        if not self.check_collision(node.pos, self.goal):
+        collides, _ = self.check_collision(node, self.goal)
+        if not collides:
             self.graph.connect(node, self.graph.get_graph()['goal'])
             if self.informed:
                 a_star_planner = A_star(self.graph)
                 path, _ = a_star_planner.find_path(self.graph.get_graph()['start'], self.graph.get_graph()['goal'])
                 self.ellipse.define_ellipse(path)
 
-
     def compute_paths(self):
         self.check_line_of_sight(self.graph.get_graph()['start'])
 
-        for _ in range(self.max_iters):
+        for n in range(self.max_iters):
+            print(f"building graph {n}/{self.max_iters}")
             closest_node, new_node_pos = self.get_new_node()
-            if not self.check_collision(closest_node.pos, new_node_pos):
-                new_node = self.graph.add_node(new_node_pos, closest_node)
+            collides, new_state = self.check_collision(closest_node, new_node_pos)
+        
+            if not collides:
+                new_node = self.graph.add_node(new_node_pos, closest_node, state=new_state)
                 self.check_line_of_sight(new_node)
 
     def get_graph(self):

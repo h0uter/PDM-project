@@ -3,16 +3,16 @@ import matplotlib.pyplot as plt
 from mpl_toolkits.mplot3d import Axes3D
 
 class Graph:
-    def __init__(self, start, goal):
+    def __init__(self, start, goal, state0=None):
         self.graph = {}
         self.goal_pos = goal
-        self.graph['start'] = Node('start', start, self.goal_pos)
-        self.graph['goal'] = Node('goal', goal, self.goal_pos)
+        self.graph['start'] = Node('start', start, self.goal_pos, state=state0)
+        self.graph['goal'] = Node('goal', goal, self.goal_pos, state=None)
         self.label = 0
     
-    def add_node(self, pos, connected_node):
+    def add_node(self, pos, connected_node, state=None):
         self.label += 1
-        new_node = Node(self.label, pos, self.goal_pos)
+        new_node = Node(self.label, pos, self.goal_pos, state=state)
         new_node.add_edge(connected_node)
         connected_node.add_edge(new_node)
 
@@ -24,12 +24,14 @@ class Graph:
         node1.add_edge(node2)
         node2.add_edge(node1)
     
-    def rewire(self, node_to_be_disconnected, node_to_be_rewired, node_to_be_connected):
+    def rewire(self, node_to_be_disconnected, node_to_be_rewired, node_to_be_connected, new_end_state=None):
         node_to_be_connected.add_edge(node_to_be_rewired)
         node_to_be_rewired.add_edge(node_to_be_connected)
 
         node_to_be_rewired.remove_edge(node_to_be_disconnected)
         node_to_be_disconnected.remove_edge(node_to_be_rewired)
+
+        node_to_be_rewired.set_state(new_end_state)
 
     def get_graph(self):
         return self.graph
@@ -63,11 +65,16 @@ class Graph:
         plt.show()
         
 class Node:
-    def __init__(self, label, pos, goal_pos, edges=[]):
+
+    def __init__(self, label, pos, goal_pos, state, edges=[]):
         self.label = str(label)
         self.pos = pos
         self.dis_to_goal = np.linalg.norm(pos - goal_pos)
         self.edges = edges
+        self.state = state
+
+    def set_state(self, state):
+        self.state = state
     
     def add_edge(self, connected_node):
         new_edge = Edge(self, connected_node)

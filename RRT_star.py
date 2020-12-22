@@ -6,6 +6,7 @@ from ellipse import Ellipse
 
 import matplotlib.pyplot as plt
 from mpl_toolkits.mplot3d import Axes3D
+import config as cfg
 
 class RRT_star:
 
@@ -44,10 +45,10 @@ class RRT_star:
         if self.ellipse.ellipse_exists() and self.informed:
             random_point = self.ellipse.get_random_point()
         else:
-            random_point = np.random.rand(3) * np.asarray([self.x_domain[1] - self.x_domain[0],
-                                                        self.y_domain[1] - self.y_domain[0],
-                                                        self.z_domain[1] - self.z_domain[0]]) \
-                            + np.asarray([self.x_domain[0], self.y_domain[0], self.z_domain[0]]) 
+            random_point = np.random.rand(3) * np.asarray([self.x_domain[1] - self.x_domain[0] - cfg.dronehitbox_r,
+                                                        self.y_domain[1] - self.y_domain[0] - cfg.dronehitbox_r,
+                                                        self.z_domain[1] - self.z_domain[0] - cfg.dronehitbox_r]) \
+            + np.asarray([self.x_domain[0] + cfg.dronehitbox_r, self.y_domain[0] + cfg.dronehitbox_r, self.z_domain[0] + cfg.dronehitbox_r]) 
 
         closest_node = self.get_closest_point(random_point)
         dir_vector = random_point - closest_node.pos

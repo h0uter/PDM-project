@@ -2,7 +2,6 @@ import numpy as np
 import matplotlib.pyplot as plt
 import matplotlib.animation as animation
 from mpl_toolkits.mplot3d.art3d import Poly3DCollection
-import copy
 
 import config as cfg
 from drone_class import Drone
@@ -49,7 +48,7 @@ rrt = RRT_star(start=np.asarray([x0, y0, z0]),
           domain=(xs, ys, zs), 
           collision_manager=collision_detector, 
           controller=controller,
-          informed=True,
+          informed=False,
           kinodynamic=True,                         #remember to set a safety margin in config.py when disabling kinodynamic
           initial_state=drone.eye_of_god(),
           max_iters=500

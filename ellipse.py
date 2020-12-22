@@ -43,13 +43,18 @@ class Ellipse:
 
         for point in path:
             A = point.pos - self.start
-            point_to_line = A - (np.dot(A, B) / np.dot(B, B)) * B
-            point_to_line_mag = np.linalg.norm(point_to_line)
+            longitudinal_vector = (np.dot(A, B) / np.dot(B, B)) * B
+            point_to_line = A - longitudinal_vector
+            local_radius = np.linalg.norm(point_to_line)
 
-            #find longest distance of path relative to primary axis
-            if point_to_line_mag > longest_dis:
-                longest_dis = point_to_line_mag
-                secondary_axis = point_to_line / point_to_line_mag
+            longitudinal_vector_mag = np.linalg.norm(longitudinal_vector)
+            x_coor = longitudinal_vector_mag - np.linalg.norm(B) / 2
+            radius = local_radius / np.sqrt(1 - x_coor**2 / self.a**2)
+
+            #find what the minimal radius would need to be to include all points
+            if radius > longest_dis:
+                longest_dis = radius
+                secondary_axis = point_to_line / local_radius
         
         if self.r is None:
             self.update(longest_dis, secondary_axis)

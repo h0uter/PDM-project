@@ -169,7 +169,7 @@ class Controller:
                 if self.current_path_node < len(self.path[:, 0]) - 1:
                     self.current_path_node += 1
                 elif not self.path_finished:
-                    print("Finished path!")
+                    #print("Finished path!")
                     self.path_finished = True
             else:
                 self.set_target(np.random.uniform(0, 5, (3)))
@@ -186,8 +186,6 @@ class Controller:
     def get_command_vector(self):
         return self.command_vector
     
-
-
     def steer(self, origin, target, full_state=None, path_reduction=1):
         """
         Takes an origin and target and returns a Nx3 matrix of coordinates of a path spline
@@ -199,30 +197,23 @@ class Controller:
         will return every other path coordinate and path_reduction=3 will return every third.
         """
 
-        if full_state is not None:
+        # Maybe it's better to override state instead of copying everything every time
+        sim_drone = deepcopy(self.drone)
+        sim_drone.set_full_state(full_state) # Does not include motor speeds
+        sim_controller = Controller(sim_drone)
 
-            # Maybe it's better to override state instead of copying everything every time
-            sim_drone = deepcopy(self.drone)
-            sim_drone.set_full_state(full_state) # Does not include motor speeds
-            sim_controller = Controller(sim_drone)
+        sim_controller.follow_path(target[None, :])
 
-            sim_controller.follow_path(target[None, :])
+        sim_path = full_state[None, 0:3]
+        step = 0
 
-            sim_path = full_state[None, 0:3]
-            step = 0
-
-            while sim_controller.path_finished is False:
-                sim_controller.update()
-                sim_drone.update()
-                if step % path_reduction == 0:
-                    sim_path = np.append(sim_path, sim_drone.eye_of_god()[None, 0:3], axis=0)
-                step += 1
-            return sim_path, sim_drone.eye_of_god()
-
-
-
-        # For now we will just return a straight line with a 0.2m margin for overshoot
-        return np.vstack((origin, target + 0.2*(target-origin)/np.linalg.norm(target-origin)))
+        while sim_controller.path_finished is False:
+            sim_controller.update()
+            sim_drone.update()
+            if step % path_reduction == 0:
+                sim_path = np.append(sim_path, sim_drone.eye_of_god()[None, 0:3], axis=0)
+            step += 1
+        return sim_path, sim_drone.eye_of_god()
     
     def follow_path(self, path, control_mode=2):
         """

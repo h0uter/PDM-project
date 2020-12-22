@@ -224,7 +224,7 @@ class PrismManager:
 
 class Beam:
 
-    def __init__(self, height, length, width, pos, dronehitbox_r, safety_margin, rotation):
+    def __init__(self, width, length, height, pos, dronehitbox_r, safety_margin, rotation):
         self.h = height
         self.l = length
         self.w = width

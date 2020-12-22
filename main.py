@@ -4,9 +4,10 @@ import matplotlib.animation as animation
 from mpl_toolkits.mplot3d.art3d import Poly3DCollection
 import copy
 
-import scenario_1 as cfg
+import scenario_2 as cfg
 from drone_class import Drone
 from controller import Controller
+from RRT import RRT
 from RRT_star import RRT_star
 from A_star import A_star
 from collision_detector import CollisionDetector
@@ -17,7 +18,7 @@ xs, ys, zs = [0.0, 10.0], [0.0, 10.0], [0.0, 10.0]
 
 drone = Drone(s0=np.asarray([cfg.start[0], cfg.start[1], cfg.start[2], 0, 0, 0]), #initial state
               s_dot0 = np.zeros(6,),                #intitial velocities
-              dt = 0.01,                            #seconds, timestep
+              dt = 0.05,                            #seconds, timestep
               m = 2,                                #kg, total mass of drone
               I = 0.1,                              #kg*m^2, total drone inertia
               L = 0.2,                              #m, length of each motor arm
@@ -40,14 +41,14 @@ beam_array = beam_manager.create_beams()
 collision_detector = CollisionDetector(cfg.safety_margin, sphere_array, prism_array, beam_array, cfg.dronehitbox_r)
 controller = Controller(drone)
 
-rrt = RRT(start=np.asarray(cfg.start),
+rrt = RRT_star(start=np.asarray(cfg.start),
           goal=np.asarray(cfg.goal),
           search_range=0.5,
           domain=(xs, ys, zs),
           collision_manager=collision_detector,
           controller=controller,
-          informed=True,
-          max_iters=1000
+          informed=False,
+          max_iters=720
           )
 
 rrt.compute_paths()
@@ -111,7 +112,7 @@ ax.set_ylim3d(zs)
 ax.set_xlabel('$X$', fontsize=20)
 ax.set_ylabel('$Y$', fontsize=20)
 ax.set_zlabel('$Z$', fontsize=20)
-ax.view_init(azim=0, elev=30)
+ax.view_init(azim=0, elev=90)
 
 p0 = drone.get_drone()
 

@@ -4,7 +4,7 @@ import matplotlib.animation as animation
 from mpl_toolkits.mplot3d.art3d import Poly3DCollection
 import copy
 
-import config as cfg
+import scenario_1 as cfg
 from drone_class import Drone
 from controller import Controller
 
@@ -16,11 +16,9 @@ from collision_detector import CollisionDetector
 from obstacles import SphereManager, BeamManager, PrismManager
 
 dt = 0.01
-xs, ys, zs = [0.0, 5.0], [0.0, 5.0], [0.0, 5.0]
-x0,y0,z0 = 0.5,0.5,0.5
-x_target, y_target, z_target = 4.1, 3.2, 5.3
+xs, ys, zs = [0.0, 10.0], [0.0, 10.0], [0.0, 10.0]
 
-drone = Drone(s0=np.asarray([x0, y0, z0, 0, 0, 0]), #initial state  
+drone = Drone(s0=np.asarray([cfg.start[0], cfg.start[1], cfg.start[2], 0, 0, 0]), #initial state
               s_dot0 = np.zeros(6,),                #intitial velocities
               dt = 0.01,                            #seconds, timestep
               m = 2,                                #kg, total mass of drone
@@ -45,13 +43,13 @@ beam_array = beam_manager.create_beams()
 collision_detector = CollisionDetector(cfg.safety_margin, sphere_array, prism_array, beam_array, cfg.dronehitbox_r)
 controller = Controller(drone)
 
-rrt = RRT_star(start=np.asarray([x0, y0, z0]), 
-          goal=np.asarray([x_target, y_target, z_target]), 
-          search_range=0.5, 
-          domain=(xs, ys, zs), 
-          collision_manager=collision_detector, 
+rrt = RRT(start=np.asarray(cfg.start),
+          goal=np.asarray(cfg.goal),
+          search_range=0.5,
+          domain=(xs, ys, zs),
+          collision_manager=collision_detector,
           controller=controller,
-          max_iters=500
+          max_iters=1000
           )
 
 rrt.compute_paths()
@@ -107,14 +105,14 @@ def update(frame):
 fig = plt.figure()
 ax = fig.add_subplot(projection="3d")
 
-ax.set_zlim3d(xs)
-ax.set_xlim3d(ys)
+ax.set_zlim3d(zs)
+ax.set_xlim3d([10, 0])
 ax.set_ylim3d(zs)
 
 ax.set_xlabel('$X$', fontsize=20)
 ax.set_ylabel('$Y$', fontsize=20)
 ax.set_zlabel('$Z$', fontsize=20)
-ax.view_init(azim=0, elev=90)
+ax.view_init(azim=0, elev=30)
 
 p0 = drone.get_drone()
 
@@ -149,4 +147,3 @@ anim = motor_locations + frame + thrust1 + thrust2 + thrust3 + thrust4 + target_
 ani = animation.FuncAnimation(fig, update, interval = dt**1000, blit=False)
 
 plt.show()
-

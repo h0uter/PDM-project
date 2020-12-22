@@ -2,6 +2,7 @@ import numpy as np
 from numpy.core.arrayprint import dtype_is_implied
 from numpy.core.numeric import roll
 import random
+from copy import deepcopy
 
 class Controller:
     def __init__(self, drone):
@@ -184,9 +185,41 @@ class Controller:
 
     def get_command_vector(self):
         return self.command_vector
+    
 
-    def steer(self, origin, target):
-        """Takes an origin and target and returns a Nx3 matrix of coordinates of a path spline"""
+
+    def steer(self, origin, target, full_state=None, path_reduction=1):
+        """
+        Takes an origin and target and returns a Nx3 matrix of coordinates of a path spline
+        
+        If a full state (state and state derivative) is given it will return a simulated path the drone
+        will take between the origin and target from the given initial full state.
+
+        Path reduction will reduce the amount of return path coordinates. For example path_reduction=2
+        will return every other path coordinate and path_reduction=3 will return every third.
+        """
+
+        if full_state is not None:
+
+            # Maybe it's better to override state instead of copying everything every time
+            sim_drone = deepcopy(self.drone)
+            sim_drone.set_full_state(full_state) # Does not include motor speeds
+            sim_controller = Controller(sim_drone)
+
+            sim_controller.follow_path(target[None, :])
+
+            sim_path = full_state[None, 0:3]
+            step = 0
+
+            while sim_controller.path_finished is False:
+                sim_controller.update()
+                sim_drone.update()
+                if step % path_reduction == 0:
+                    sim_path = np.append(sim_path, sim_drone.eye_of_god()[None, 0:3], axis=0)
+                step += 1
+            return sim_path, sim_drone.eye_of_god()
+
+
 
         # For now we will just return a straight line with a 0.2m margin for overshoot
         return np.vstack((origin, target + 0.2*(target-origin)/np.linalg.norm(target-origin)))

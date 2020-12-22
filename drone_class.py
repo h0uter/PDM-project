@@ -81,7 +81,12 @@ class Drone:
         return T 
     
     def eye_of_god(self):
-        return np.append(self.s, self.s_dot) #x, y, z, roll, pitch, yaw, vx, vy, vz, vpitch, vroll, vyaw 
+        return np.append(self.s, self.s_dot) #x, y, z, roll, pitch, yaw, vx, vy, vz, vpitch, vroll, vyaw
+    
+    def set_full_state(self, full_state):
+        """ Sets both the state and state derivative from a single vector"""
+        self.s = full_state[0:6]
+        self.s_dot = full_state[6:12]
     
     def set_motor_commands(self, motor_commands): 
         self.motor_commands = np.asarray(motor_commands) #takes 4D array, using order [A, B, C, D]

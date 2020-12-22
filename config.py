@@ -6,12 +6,14 @@ spheres_r.append(0.5)
 spheres_r.append(0.75)
 spheres_r.append(0.65)
 spheres_r.append(0.7)
+spheres_r.append(1.0)
 
 spheres_pos = []
 spheres_pos.append([4, 4, 3])
 spheres_pos.append([1, 3, 2])
 spheres_pos.append([2.5, 1, 1])
 spheres_pos.append([2.5, 2.5, 2.5])
+spheres_pos.append([4, 2.5, 1.5])
 n_spheres = 4
 
 prisms = []

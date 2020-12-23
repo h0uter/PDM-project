@@ -22,7 +22,7 @@ class RRT_star:
         self.kinodynamic = kinodynamic
         self.max_iters = max_iters
 
-        self.ellipse = Ellipse(start, goal)
+        self.ellipse = Ellipse(start, goal, domain=domain)
 
         np.random.seed(69)
 

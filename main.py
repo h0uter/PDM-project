@@ -3,7 +3,7 @@ import matplotlib.pyplot as plt
 import matplotlib.animation as animation
 from mpl_toolkits.mplot3d.art3d import Poly3DCollection
 
-import scenario_3 as cfg
+import scenario_2 as cfg # change what to import to change scenarios e.g. import scenario_1 as cfg
 from drone_class import Drone
 from controller import Controller
 from RRT import RRT
@@ -50,7 +50,7 @@ rrt = RRT_star(start=np.asarray(cfg.start),
           informed=True,
           kinodynamic=False,                         #remember to set a safety margin in config.py when disabling kinodynamic
           initial_state=drone.eye_of_god(),
-          max_iters=5000
+          max_iters=1
           )
 
 rrt.compute_paths()

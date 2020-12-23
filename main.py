@@ -42,16 +42,16 @@ beam_array = beam_manager.create_beams()
 collision_detector = CollisionDetector(cfg.safety_margin, sphere_array, prism_array, beam_array, cfg.dronehitbox_r)
 controller = Controller(drone)
 
-rrt = RRT_star(start=np.asarray([x0, y0, z0]), 
+rrt = RRT(start=np.asarray([x0, y0, z0]), 
           goal=np.asarray([x_target, y_target, z_target]), 
           search_range=0.5, 
           domain=(xs, ys, zs), 
           collision_manager=collision_detector, 
           controller=controller,
-          informed=False,
-          kinodynamic=True,                         #remember to set a safety margin in config.py when disabling kinodynamic
+          informed=True,
+          kinodynamic=False,                         #remember to set a safety margin in config.py when disabling kinodynamic
           initial_state=drone.eye_of_god(),
-          max_iters=500
+          max_iters=1000
           )
 
 rrt.compute_paths()

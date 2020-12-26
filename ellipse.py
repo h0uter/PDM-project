@@ -25,8 +25,8 @@ class Ellipse:
         self.tertiary_axis = np.cross(self.primary_axis, self.secondary_axis)
         self.transformation_matrix = np.zeros((4,4))
 
-        rotation_matrix = np.column_stack((self.primary_axis, 
-                                           self.secondary_axis, 
+        rotation_matrix = np.column_stack((self.primary_axis,
+                                           self.secondary_axis,
                                            self.tertiary_axis))
 
         self.transformation_matrix[:-1, :-1] = rotation_matrix
@@ -56,7 +56,7 @@ class Ellipse:
             if radius > longest_dis:
                 longest_dis = radius
                 secondary_axis = point_to_line / local_radius
-        
+
         if self.r is None:
             self.update(longest_dis, secondary_axis)
         elif self.r - cfg.dronehitbox_r > longest_dis:
@@ -82,7 +82,7 @@ class Ellipse:
         #transform to global coordinates using transformation matrix
         global_vector = np.dot(self.transformation_matrix, np.asarray([x, y, z, 1]))[:-1]
         return global_vector
-    
+
     def ellipse_exists(self):
         return self.r is not None
 
@@ -107,7 +107,7 @@ class Walls:
             if d is not None:
                 if d < min_dis and d >= 0.:
                     min_dis = d
-        
+
         return min_dis
 
 class Wall:
@@ -115,16 +115,16 @@ class Wall:
     def __init__(self, normal_vector, p0):
         self.normal_vector = normal_vector
         self.p0 = p0
-    
+
     def get_distance(self, line_origin, unit_dir):
         numerator = np.dot(self.p0 - line_origin, self.normal_vector)
         denominator = np.dot(unit_dir, self.normal_vector)
 
         if denominator == 0:
             return None
-        
+
         elif numerator == 0:
             return 0.0
-        
+
         else:
-            return numerator / denominator
+            return -numerator / denominator

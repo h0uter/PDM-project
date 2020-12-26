@@ -1,9 +1,10 @@
+import time
 import numpy as np
 import matplotlib.pyplot as plt
 import matplotlib.animation as animation
 from mpl_toolkits.mplot3d.art3d import Poly3DCollection
 
-import scenario_2 as cfg # change what to import to change scenarios e.g. import scenario_1 as cfg
+import scenario_3 as cfg # change what to import to change scenarios e.g. import scenario_1 as cfg
 from drone_class import Drone
 from controller import Controller
 from RRT import RRT
@@ -18,7 +19,7 @@ xs, ys, zs = [0.0, 10.0], [0.0, 10.0], [0.0, 10.0]
 
 drone = Drone(s0=np.asarray([cfg.start[0], cfg.start[1], cfg.start[2], 0, 0, 0]), #initial state
               s_dot0 = np.zeros(6,),                #intitial velocities
-              dt = 0.05,                            #seconds, timestep
+              dt = 0.01,                            #seconds, timestep
               m = 2,                                #kg, total mass of drone
               I = 0.1,                              #kg*m^2, total drone inertia
               L = 0.2,                              #m, length of each motor arm
@@ -41,6 +42,7 @@ beam_array = beam_manager.create_beams()
 collision_detector = CollisionDetector(cfg.safety_margin, sphere_array, prism_array, beam_array, cfg.dronehitbox_r)
 controller = Controller(drone)
 
+time1 = time.perf_counter()
 rrt = RRT_star(start=np.asarray(cfg.start),
           goal=np.asarray(cfg.goal),
           search_range=0.5,
@@ -50,11 +52,11 @@ rrt = RRT_star(start=np.asarray(cfg.start),
           informed=True,
           kinodynamic=False,                         #remember to set a safety margin in config.py when disabling kinodynamic
           initial_state=drone.eye_of_god(),
-          max_iters=1
+          max_iters=6000
           )
 
 rrt.compute_paths()
-
+time2 = time.perf_counter()
 graph = rrt.get_graph()
 graph.plot_graph(domain=(xs, ys, zs), sphere_manager=sphere_manager,
                                       sphere_array=sphere_array,
@@ -65,6 +67,9 @@ graph.plot_graph(domain=(xs, ys, zs), sphere_manager=sphere_manager,
 
 a_star_planner = A_star(graph)
 path, cost = a_star_planner.find_path(graph.get_graph()['start'], graph.get_graph()['goal'])
+
+time_taken  = time2 - time1
+print(f"Runtime was {time_taken} seconds.")
 print(f'path found of length {cost} m')
 path_pos = np.zeros((len(path), 3))
 
@@ -114,7 +119,7 @@ ax.set_ylim3d(zs)
 ax.set_xlabel('$X$', fontsize=20)
 ax.set_ylabel('$Y$', fontsize=20)
 ax.set_zlabel('$Z$', fontsize=20)
-ax.view_init(azim=0, elev=0)
+ax.view_init(azim=0, elev=90)
 
 p0 = drone.get_drone()
 

@@ -24,7 +24,7 @@ class RRT:
 
         self.ellipse = Ellipse(start, goal, domain=domain)
 
-        np.random.seed(69)
+        np.random.seed(1)
 
     def get_closest_point(self, point):
         shortest_distance = 1e6
@@ -38,7 +38,7 @@ class RRT:
                 if dis < shortest_distance:
                     shortest_distance = dis
                     closest_node = node
-                
+
         return closest_node
 
     def get_new_node(self):
@@ -68,7 +68,7 @@ class RRT:
             return self.collision_manager.update(path_points), new_state
         else:
             return self.collision_manager.update([node0.pos, pos2]), None
-    
+
     def check_line_of_sight(self, node):
         collides, _ = self.check_collision(node, self.goal)
         if not collides:
@@ -85,11 +85,10 @@ class RRT:
             print(f"building graph {n}/{self.max_iters}")
             closest_node, new_node_pos = self.get_new_node()
             collides, new_state = self.check_collision(closest_node, new_node_pos)
-        
+
             if not collides:
                 new_node = self.graph.add_node(new_node_pos, closest_node, state=new_state)
                 self.check_line_of_sight(new_node)
 
     def get_graph(self):
         return self.graph
-    

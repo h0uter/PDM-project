@@ -19,7 +19,4 @@ beams_pos = []
 n_beams = 0
 
 dronehitbox_r = 0.2
-safety_margin = 0.0
-
-iterations = [600, 800, 1000, 1200, 1400]
-seeds = [1, 2, 3, 42, 69]
+safety_margin = 0.1

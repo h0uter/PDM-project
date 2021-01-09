@@ -51,6 +51,3 @@ n_beams = 11
 
 dronehitbox_r = 0.2
 safety_margin = 0.3
-
-iterations = [8000, 8500, 9000, 9500, 10000]
-seeds = [1, 2, 3, 42, 69]

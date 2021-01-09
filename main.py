@@ -1,10 +1,11 @@
 import time
+import csv
 import numpy as np
 import matplotlib.pyplot as plt
 import matplotlib.animation as animation
 from mpl_toolkits.mplot3d.art3d import Poly3DCollection
 
-import scenario_3 as cfg # change what to import to change scenarios e.g. import scenario_1 as cfg
+import scenario_1 as cfg # change what to import to change scenarios e.g. import scenario_1 as cfg
 from drone_class import Drone
 from controller import Controller
 from RRT import RRT
@@ -42,33 +43,67 @@ beam_array = beam_manager.create_beams()
 collision_detector = CollisionDetector(cfg.safety_margin, sphere_array, prism_array, beam_array, cfg.dronehitbox_r)
 controller = Controller(drone)
 
-time1 = time.perf_counter()
-rrt = RRT_star(start=np.asarray(cfg.start),
-          goal=np.asarray(cfg.goal),
-          search_range=0.5,
-          domain=(xs, ys, zs),
-          collision_manager=collision_detector,
-          controller=controller,
-          informed=True,
-          kinodynamic=False,                         #remember to set a safety margin in config.py when disabling kinodynamic
-          initial_state=drone.eye_of_god(),
-          max_iters=6000
-          )
+runtime_array = []
+cost_array = []
 
-rrt.compute_paths()
-time2 = time.perf_counter()
-graph = rrt.get_graph()
-graph.plot_graph(domain=(xs, ys, zs), sphere_manager=sphere_manager,
-                                      sphere_array=sphere_array,
-                                      prism_manager=prism_manager,
-                                      prism_array=prism_array,
-                                      beam_manager=beam_manager,
-                                      beam_array=beam_array)
+seeds = cfg.seeds
+iterations = cfg.iterations
 
-a_star_planner = A_star(graph)
-path, cost = a_star_planner.find_path(graph.get_graph()['start'], graph.get_graph()['goal'])
+for seed in seeds:
+    for iter in iterations:
+        time1 = time.perf_counter()
+        rrt = RRT_star(start=np.asarray(cfg.start),
+                  goal=np.asarray(cfg.goal),
+                  search_range=0.5,
+                  domain=(xs, ys, zs),
+                  collision_manager=collision_detector,
+                  controller=controller,
+                  informed=False,
+                  kinodynamic=True,                         #remember to set a safety margin in config.py when disabling kinodynamic
+                  initial_state=drone.eye_of_god(),
+                  max_iters=iter,
+                  seed=seed
+                  )
 
-time_taken  = time2 - time1
+        rrt.compute_paths()
+        time2 = time.perf_counter()
+        time_taken = time2 - time1
+
+
+        #np.savetxt("data.csv", runtime_array, delimiter = ",")
+        #np.savetxt("numbers.csv", np.arange(1,data_len+1), delimiter = ",")
+
+        graph = rrt.get_graph()
+        """
+        graph.plot_graph(domain=(xs, ys, zs), sphere_manager=sphere_manager,
+                                              sphere_array=sphere_array,
+                                              prism_manager=prism_manager,
+                                              prism_array=prism_array,
+                                              beam_manager=beam_manager,
+                                              beam_array=beam_array)
+        """
+        a_star_planner = A_star(graph)
+
+        try:
+            path, cost = a_star_planner.find_path(graph.get_graph()['start'], graph.get_graph()['goal'])
+            runtime_array.append(time_taken)
+            cost_array.append(cost)
+        except KeyError:
+            runtime_array.append(0)
+            cost_array.append(0)
+            continue
+
+    runtime_array = np.asarray(runtime_array)
+    cost_array = np.asarray(cost_array)
+    np.savetxt(f"runtimes_for_seed_{seed}.csv", runtime_array, delimiter=",")
+    np.savetxt(f"costs_for_seed_{seed}.csv", cost_array, delimiter=",")
+    runtime_array = []
+    cost_array = []
+
+
+#np.savetxt("data.csv", runtime_array, delimiter = ",")
+#np.savetxt("numbers.csv", np.arange(1,data_len+1), delimiter = ",")
+
 print(f"Runtime was {time_taken} seconds.")
 print(f'path found of length {cost} m')
 path_pos = np.zeros((len(path), 3))
@@ -145,9 +180,6 @@ path_plot = ax.plot(controller.path[0,:], controller.path[1, :], controller.path
 sphere_manager.draw(ax, sphere_array)
 prism_manager.draw(ax, prism_array)
 beam_manager.draw(ax, beam_array)
-
-#initialise collision detector
-collision_detector = CollisionDetector(cfg.safety_margin, sphere_array, prism_array, beam_array, cfg.dronehitbox_r)
 
 # index anim as an array
 anim = motor_locations + frame + thrust1 + thrust2 + thrust3 + thrust4 + target_location + path_plot

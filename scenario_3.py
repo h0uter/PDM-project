@@ -26,6 +26,11 @@ beams.append([3, 0.3, 4.85, [0,0,0]])
 beams.append([3, 0.3, 5, [0,0,0]])
 beams.append([7, 0.3, 7.85, [0,0,0]])
 
+beams.append([10, 0.1, 8, [0,0,0]])
+beams.append([10, 0.1, 8, [0,0,0]])
+beams.append([0.1, 10, 8, [0,0,0]])
+beams.append([0.1, 10, 8, [0,0,0]])
+
 beams_pos = []
 beams_pos.append([2, 5, 8])
 beams_pos.append([8, 5, 8])
@@ -37,9 +42,15 @@ beams_pos.append([8.5, 2, 5.425])
 beams_pos.append([1.5, 4, 2.5])
 beams_pos.append([6.5, 4, 3.925])
 
+beams_pos.append([5, 0, 4])
+beams_pos.append([5, 10, 4])
+beams_pos.append([0, 5, 4])
+beams_pos.append([10, 5, 4])
 
-
-n_beams = 7
+n_beams = 11
 
 dronehitbox_r = 0.2
 safety_margin = 0.3
+
+iterations = [8000, 8500, 9000, 9500, 10000]
+seeds = [1, 2, 3, 42, 69]

@@ -10,7 +10,7 @@ import config as cfg
 
 class RRT_star:
 
-    def __init__(self, start, goal, search_range, domain, collision_manager, controller, informed, kinodynamic, initial_state, max_iters=1000):
+    def __init__(self, start, goal, search_range, domain, collision_manager, controller, informed, kinodynamic, initial_state, max_iters, seed):
         self.start = start
         self.goal = goal
         self.graph = Graph(start, goal, state0=initial_state)
@@ -24,7 +24,7 @@ class RRT_star:
 
         self.ellipse = Ellipse(start, goal, domain=domain)
 
-        np.random.seed(69)
+        np.random.seed(seed)
 
     def get_closest_point(self, point):
         shortest_distance = 1e6
@@ -38,7 +38,7 @@ class RRT_star:
                 if dis < shortest_distance:
                     shortest_distance = dis
                     closest_node = node
-                
+
         return closest_node
 
     def get_new_node(self):
@@ -48,7 +48,7 @@ class RRT_star:
             random_point = np.random.rand(3) * np.asarray([self.x_domain[1] - self.x_domain[0] - cfg.dronehitbox_r,
                                                         self.y_domain[1] - self.y_domain[0] - cfg.dronehitbox_r,
                                                         self.z_domain[1] - self.z_domain[0] - cfg.dronehitbox_r]) \
-            + np.asarray([self.x_domain[0] + cfg.dronehitbox_r, self.y_domain[0] + cfg.dronehitbox_r, self.z_domain[0] + cfg.dronehitbox_r]) 
+            + np.asarray([self.x_domain[0] + cfg.dronehitbox_r, self.y_domain[0] + cfg.dronehitbox_r, self.z_domain[0] + cfg.dronehitbox_r])
 
         closest_node = self.get_closest_point(random_point)
         dir_vector = random_point - closest_node.pos
@@ -88,7 +88,7 @@ class RRT_star:
             if node != self.graph.get_graph()['goal']:
                 dis_to_new_node = np.linalg.norm(node.pos - origin_pos)
                 if dis_to_new_node <= self.search_range * search_factor:
-                    collides, state = self.check_collision(node, origin_pos) 
+                    collides, state = self.check_collision(node, origin_pos)
                     if not collides:
                         if node != self.graph.get_graph()['start']:
                             path, cost = a_star_planner.find_path(self.graph.get_graph()['start'], node)
@@ -96,17 +96,17 @@ class RRT_star:
                             path, cost = [], 0
 
                         node_values.append((node, path, cost))
-                        cost += dis_to_new_node 
+                        cost += dis_to_new_node
 
                         if cost < optimal_cost:
                             optimal_cost = cost
                             optimal_node = node
                             novel_state = state
-        
+
         if len(node_values) > 0:
             new_node = self.graph.add_node(origin_pos, optimal_node, state=novel_state)
             self.check_line_of_sight(new_node)
-            
+
             #rewire phase, check for each node whether a more optimal path via the new node exists
             for node, path, cost in node_values:
                 if optimal_cost + np.linalg.norm(node.pos - origin_pos) < cost:
@@ -116,7 +116,7 @@ class RRT_star:
                             self.graph.rewire(path[-2], node, new_node,new_end_state=state)
                     else:
                         self.graph.rewire(path[-2], node, new_node)
-        
+
     def compute_paths(self):
         self.check_line_of_sight(self.graph.get_graph()['start'])
 
@@ -127,4 +127,3 @@ class RRT_star:
 
     def get_graph(self):
         return self.graph
-    

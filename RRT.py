@@ -10,7 +10,7 @@ import config as cfg
 
 class RRT:
 
-    def __init__(self, start, goal, search_range, domain, collision_manager, controller, informed, kinodynamic, initial_state, max_iters=1000):
+    def __init__(self, start, goal, search_range, domain, collision_manager, controller, informed, kinodynamic, initial_state, max_iters, seed):
         self.start = start
         self.goal = goal
         self.graph = Graph(start, goal, state0=initial_state)
@@ -24,7 +24,7 @@ class RRT:
 
         self.ellipse = Ellipse(start, goal, domain=domain)
 
-        np.random.seed(1)
+        np.random.seed(seed)
 
     def get_closest_point(self, point):
         shortest_distance = 1e6

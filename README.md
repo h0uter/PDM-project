@@ -7,7 +7,7 @@ Bram Bornhijm (4692721), Rogier Ketwaru (4698975), Alexander Keijzer (4372697), 
 This repository contains the code written for the Planning and Decision Making project by group 20.
 The project implements multiple RRT-based path planners in different environments.
 
-![Gif of Path Planning](https://i.gyazo.com/8712fa148fc2c0b92ac9f33c0b42fb59.gif)
+![Gif of Path Planning](images/preview.gif)
 
 ## Usage
 This project is written in Python 3 and uses the packages: **numpy**, **pyquaternion** and **matplotlib**. To be able to run the code these packages first have to be installed through your package manager.

@@ -21,6 +21,5 @@ Run the pathfinding and simulation on the default environment with `python main.
 - `drone_class.py` contains the quad-rotor model definition and simulation
 - `RRT.py`, `RRT_star.py`, `graph.py` `ellipse.py` & `A_star.py` contain the path planning code
 - `obstacles.py` & `collision_detector.py` contains the obstacle definitions collision detection
-- `config.py` contains the list of obstacles for the current envirnoment
 - `scenario_*.py` contains the list of obstacles the scenarios in the paper
 - `controller.py` contains the quad-rotor path following control

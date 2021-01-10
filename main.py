@@ -43,6 +43,8 @@ beam_array = beam_manager.create_beams()
 collision_detector = CollisionDetector(cfg.safety_margin, sphere_array, prism_array, beam_array, cfg.dronehitbox_r)
 controller = Controller(drone)
 
+seed = 1
+iter = 600
 
 rrt = RRT_star(start=np.asarray(cfg.start),
           goal=np.asarray(cfg.goal),
@@ -73,7 +75,6 @@ a_star_planner = A_star(graph)
 
 path, cost = a_star_planner.find_path(graph.get_graph()['start'], graph.get_graph()['goal'])
 
-print(f"Runtime was {time_taken} seconds.")
 print(f'path found of length {cost} m')
 path_pos = np.zeros((len(path), 3))
 

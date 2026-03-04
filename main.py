@@ -105,8 +105,8 @@ def update(frame):
             an.set_3d_properties(np.asarray([start[2], start[2]]))
 
     # plot the current setpoint
-    anim[6].set_data(controller.internal_target[0], controller.internal_target[1])
-    anim[6].set_3d_properties(controller.internal_target[2])
+    anim[6].set_data([controller.internal_target[0]], [controller.internal_target[1]])
+    anim[6].set_3d_properties([controller.internal_target[2]])
 
     # plot the entire path
     anim[7].set_data(controller.path[:, 0], controller.path[:, 1])
